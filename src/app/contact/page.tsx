@@ -52,21 +52,17 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen overflow-hidden bg-[#f5f7fb]">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-[#0f172a] px-4 py-20 text-white sm:px-6 lg:px-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1f4f8f] via-[#173b6b] to-[#0f172a]" />
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-[#1d4ed8] blur-3xl" />
-          <div className="absolute -right-20 top-4 h-72 w-72 rounded-full bg-[#38bdf8] blur-3xl" />
-        </div>
+      <section className="relative overflow-hidden border-b border-[#cfe1f3] bg-gradient-to-br from-[#eef6ff] via-white to-[#dbeafe] px-4 py-20 sm:px-6 lg:px-8">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.22),transparent_42%)]" />
 
         <div className="relative mx-auto max-w-7xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#fbbf24]">
             Get in Touch
           </p>
-          <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-white sm:text-5xl lg:text-6xl">
+          <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-[#1f2937] sm:text-5xl lg:text-6xl">
             Contact Us
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/75">
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
             Need product advice, a bulk quote, or help with an order? Send us a message and the Impact Store team will respond as soon as possible.
           </p>
         </div>

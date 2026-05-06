@@ -38,11 +38,12 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] pb-16">
-      <div className="bg-[#0f172a] text-white">
-        <div className="mx-auto max-w-[1440px] px-6 py-12">
+      <div className="relative overflow-hidden border-b border-[#cfe1f3] bg-gradient-to-br from-[#eef6ff] via-white to-[#dbeafe]">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.22),transparent_42%)]" />
+        <div className="relative mx-auto max-w-[1440px] px-6 py-12">
           <p className="text-xs font-semibold uppercase tracking-widest text-[#fbbf24]">Catalog</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-normal">{title}</h1>
-          <p className="mt-3 max-w-2xl text-white/70">
+          <h1 className="mt-2 text-4xl font-semibold tracking-normal text-[#1f2937]">{title}</h1>
+          <p className="mt-3 max-w-2xl text-slate-600">
             Browse Impact Store inventory for business procurement, team rollouts, and everyday technology needs.
           </p>
         </div>

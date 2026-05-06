@@ -22,21 +22,22 @@ const features = [
 export default function MdmPage() {
   return (
     <div className="min-h-screen bg-[#f5f7fb]">
-      <section className="bg-[#0f172a] text-white">
-        <div className="mx-auto grid max-w-[1440px] gap-12 px-6 py-20 lg:grid-cols-2 lg:items-center">
+      <section className="relative overflow-hidden border-b border-[#cfe1f3] bg-gradient-to-br from-[#eef6ff] via-white to-[#dbeafe]">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.22),transparent_42%)]" />
+        <div className="relative mx-auto grid max-w-[1440px] gap-12 px-6 py-20 lg:grid-cols-2 lg:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-[#fbbf24]">Mobile Device Management</p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-normal sm:text-5xl lg:text-6xl">
+            <h1 className="mt-4 text-4xl font-semibold tracking-normal text-[#1f2937] sm:text-5xl lg:text-6xl">
               Keep business devices easier to deploy, secure, and support.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
               Impact Store helps teams source and prepare devices for managed environments, from small office rollouts to larger mobile workforces.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/contact" className="rounded-full bg-[#fbbf24] px-6 py-3 text-sm font-semibold text-[#1f2937] transition hover:bg-[#f59e0b]">
                 Request MDM support
               </Link>
-              <Link href="/products" className="rounded-full border border-white/35 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+              <Link href="/products" className="rounded-full border border-[#1f4f8f]/25 px-6 py-3 text-sm font-semibold text-[#1f4f8f] transition hover:bg-[#1f4f8f]/8">
                 Browse devices
               </Link>
             </div>

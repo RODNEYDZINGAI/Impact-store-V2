@@ -35,14 +35,15 @@ const highlights = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#f5f7fb]">
-      <section className="bg-[#0f172a] text-white">
-        <div className="mx-auto grid max-w-[1440px] gap-10 px-6 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+      <section className="relative overflow-hidden border-b border-[#cfe1f3] bg-gradient-to-br from-[#eef6ff] via-white to-[#dbeafe]">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.22),transparent_42%)]" />
+        <div className="relative mx-auto grid max-w-[1440px] gap-10 px-6 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-[#fbbf24]">About Impact Store</p>
-            <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-normal sm:text-5xl lg:text-6xl">
+            <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-normal text-[#1f2937] sm:text-5xl lg:text-6xl">
               ICT procurement made simpler for teams and everyday buyers.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
               Impact Store is the technology retail and procurement arm of Impact Holdings, helping customers source dependable devices, workplace accessories, ICT hardware, and business technology solutions.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -50,21 +51,21 @@ export default function AboutPage() {
                 Browse products
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/contact" className="inline-flex items-center gap-2 rounded-full border border-white/35 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+              <Link href="/contact" className="inline-flex items-center gap-2 rounded-full border border-[#1f4f8f]/25 px-6 py-3 text-sm font-semibold text-[#1f4f8f] transition hover:bg-[#1f4f8f]/8">
                 Request a quote
               </Link>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-sm sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#fbbf24]">What We Stand For</p>
+          <div className="rounded-3xl border border-slate-200 bg-white/82 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#1f4f8f]">What We Stand For</p>
             <div className="mt-5 space-y-4">
               {promises.map((item) => (
-                <div key={item} className="flex items-start gap-3 rounded-2xl bg-white/10 px-4 py-4">
+                <div key={item} className="flex items-start gap-3 rounded-2xl bg-[#f5f7fb] px-4 py-4">
                   <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#fbbf24] text-xs font-bold text-[#1f2937]">
                     ✓
                   </span>
-                  <p className="text-sm leading-relaxed text-white/78">{item}</p>
+                  <p className="text-sm leading-relaxed text-slate-600">{item}</p>
                 </div>
               ))}
             </div>
