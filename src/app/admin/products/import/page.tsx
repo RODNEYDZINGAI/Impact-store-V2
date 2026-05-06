@@ -177,7 +177,13 @@ export default function ImportProductsPage() {
               Use <span className="text-gray-300">New</span> or <span className="text-gray-300">Refurbished</span> for condition.
             </p>
             <p>
-              Multiple images can be comma-separated. Specs should use semicolon-separated key/value pairs, for example:
+              Multiple images can be comma-separated. The import stores image paths or public URLs only; it does not upload image files to R2. Use full public R2 URLs after the images are already uploaded, or site-relative paths for bundled demo assets.
+            </p>
+            <code className="block rounded-xl bg-navy p-3 text-xs text-gray-300">
+              https://your-r2-url/products/laptop/front.jpg, https://your-r2-url/products/laptop/side.jpg
+            </code>
+            <p>
+              Specs should use semicolon-separated key/value pairs, for example:
             </p>
             <code className="block rounded-xl bg-navy p-3 text-xs text-gray-300">
               CPU:Intel Core i5;RAM:16GB;Storage:512GB SSD

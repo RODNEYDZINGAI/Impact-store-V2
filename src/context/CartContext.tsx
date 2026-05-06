@@ -28,9 +28,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("impact-store-cart");
-    setItems(stored ? JSON.parse(stored) : []);
-    setHydrated(true);
+    const timer = window.setTimeout(() => {
+      const stored = localStorage.getItem("impact-store-cart");
+      setItems(stored ? JSON.parse(stored) : []);
+      setHydrated(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {

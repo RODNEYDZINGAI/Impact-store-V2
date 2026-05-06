@@ -54,7 +54,7 @@ export async function GET() {
       published: "yes",
       subtitle: "Business laptop for teams",
       description: "A reliable Latitude laptop for office productivity and remote work.",
-      images: "/impact/evp/laptops2.jpg",
+      images: "/impact/evp/laptops2.jpg, /impact/evp/laptops3.jpg, /impact/evp/laptops0.jpg",
       specs: "CPU:Intel Core i5;RAM:16GB;Storage:512GB SSD;Warranty:12 months",
     },
     {
@@ -71,7 +71,7 @@ export async function GET() {
       published: "yes",
       subtitle: "Indoor surveillance camera",
       description: "Compact dome camera for office and retail security installations.",
-      images: "https://example.com/camera.jpg",
+      images: "https://your-r2-public-url.example/products/hikvision-dome/front.jpg, https://your-r2-public-url.example/products/hikvision-dome/side.jpg",
       specs: "Resolution:4MP;Lens:2.8mm;Use:Indoor",
     },
   ];
