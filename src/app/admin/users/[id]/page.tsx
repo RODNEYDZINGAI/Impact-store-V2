@@ -1,0 +1,333 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+
+interface Order {
+  _id: string;
+  items: { name: string; quantity: number; price: number }[];
+  total: number;
+  status: string;
+  shippingAddress: { fullName: string; city: string; province: string };
+  createdAt: string;
+}
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: string;
+  referralCode?: string;
+  referralEnabled: boolean;
+  address?: {
+    street: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+  };
+}
+
+const statusColors: Record<string, string> = {
+  pending: "bg-amber/10 text-amber border-amber/30",
+  confirmed: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+  shipped: "bg-violet/10 text-violet border-violet/30",
+  delivered: "bg-emerald/10 text-emerald border-emerald/30",
+  cancelled: "bg-red-500/10 text-red-400 border-red-500/30",
+};
+
+export default function UserDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingReferral, setUpdatingReferral] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/users?id=${params.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setUser(data.user);
+        setOrders(data.orders);
+        setLoading(false);
+      });
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-white">User not found</h1>
+        <Link
+          href="/admin/users"
+          className="mt-4 inline-block text-steel hover:text-violet-bright"
+        >
+          Back to Users
+        </Link>
+      </div>
+    );
+  }
+
+  const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
+
+  return (
+    <div>
+      <div className="flex items-center gap-4">
+        <Link
+          href="/admin/users"
+          className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-white/[0.05] hover:text-white"
+        >
+          ← Back
+        </Link>
+        <h1 className="text-2xl font-bold text-white">Customer Details</h1>
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        {/* Customer Info Card */}
+        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-royal to-steel text-xl font-bold text-white">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">{user.name}</h2>
+              <p className="text-sm text-gray-400">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Status</span>
+              <span
+                className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
+                  user.emailVerified
+                    ? "border-emerald/30 bg-emerald/10 text-emerald"
+                    : "border-amber/30 bg-amber/10 text-amber"
+                }`}
+              >
+                {user.emailVerified ? "Verified" : "Unverified"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Joined</span>
+              <span className="text-sm text-gray-300">
+                {new Date(user.createdAt).toLocaleDateString("en-ZA", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Total Orders</span>
+              <span className="text-sm text-white">{orders.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Total Spent</span>
+              <span className="text-sm font-medium text-white">
+                R{totalSpent.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Address Card */}
+        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+          <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">
+            Delivery Address
+          </h3>
+          {user.address ? (
+            <div className="mt-4 space-y-2">
+              <p className="text-white">{user.address.street}</p>
+              <p className="text-gray-300">
+                {user.address.city}, {user.address.province}
+              </p>
+              <p className="text-gray-300">{user.address.postalCode}</p>
+              <p className="text-gray-400">{user.address.country}</p>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">
+              No address saved yet.
+            </p>
+          )}
+        </div>
+
+        {/* Stats Card */}
+        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+          <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">
+            Order Statistics
+          </h3>
+          <div className="mt-4 space-y-3">
+            {["pending", "confirmed", "shipped", "delivered"].map((status) => {
+              const count = orders.filter((o) => o.status === status).length;
+              return (
+                <div key={status} className="flex justify-between">
+                  <span className="text-sm capitalize text-gray-400">
+                    {status}
+                  </span>
+                  <span className="text-sm text-white">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Referral Code Card */}
+        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">
+              Referral Program
+            </h3>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                checked={!!user.referralEnabled}
+                onChange={async () => {
+                  setUpdatingReferral(true);
+                  const newValue = !user.referralEnabled;
+                  console.log("Toggling referral to:", newValue, "for user:", user._id);
+                  try {
+                    const res = await fetch("/api/users", {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        userId: user._id,
+                        referralEnabled: newValue,
+                      }),
+                    });
+                    console.log("Response status:", res.status);
+                    const data = await res.json();
+                    console.log("Response data:", data);
+                    if (res.ok) {
+                      setUser({ 
+                        ...user, 
+                        referralEnabled: data.user.referralEnabled,
+                        referralCode: data.user.referralCode 
+                      });
+                    } else {
+                      console.error("API error:", data);
+                      alert(data.error || "Failed to update referral");
+                    }
+                  } catch (error) {
+                    console.error("Failed to update referral:", error);
+                    alert("Failed to update referral. Please try again.");
+                  }
+                  setUpdatingReferral(false);
+                }}
+                disabled={updatingReferral}
+              />
+              <div className="peer h-6 w-11 rounded-full bg-gray-700 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-emerald-600 peer-checked:after:translate-x-full peer-disabled:opacity-50"></div>
+            </label>
+          </div>
+
+          {!!user.referralEnabled && user.referralCode ? (
+            <div className="mt-4">
+              <p className="text-xs text-gray-500">Referral Code</p>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="rounded-lg bg-gradient-to-r from-gold/20 to-gold/10 px-4 py-2">
+                  <span className="font-mono text-lg font-bold text-gold">
+                    {user.referralCode}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.referralCode!);
+                    alert("Copied to clipboard!");
+                  }}
+                  className="rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-white/[0.05] hover:text-white"
+                  title="Copy code"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Customer gets 5% off when using this code at checkout
+              </p>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">
+              Enable to generate a referral code for this customer
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Orders Section */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold text-white">Order History</h2>
+
+        {orders.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-white/[0.06] bg-navy-light p-8 text-center">
+            <p className="text-gray-500">No orders yet.</p>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-4">
+            {orders.map((order) => (
+              <div
+                key={order._id}
+                className="rounded-2xl border border-white/[0.06] bg-navy-light p-6"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-white">
+                      Order #{order._id.slice(-8).toUpperCase()}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(order.createdAt).toLocaleDateString("en-ZA", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${
+                        statusColors[order.status] ||
+                        "border-gray-500/30 bg-gray-500/10 text-gray-400"
+                      }`}
+                    >
+                      {order.status}
+                    </span>
+                    <span className="text-lg font-bold text-white">
+                      R{order.total.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
+                  {order.items.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-gray-400">
+                        {item.name} x{item.quantity}
+                      </span>
+                      <span className="text-gray-300">
+                        R{(item.price * item.quantity).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-xs text-gray-500">
+                  Ship to: {order.shippingAddress.fullName},{" "}
+                  {order.shippingAddress.city}, {order.shippingAddress.province}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

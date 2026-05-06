@@ -1,0 +1,948 @@
+{
+	"info": {
+		"_postman_id": "034611b0-a015-4ece-af10-57aecff1e211",
+		"name": "Bob Pay API documentation",
+		"description": "# Introduction to the Bob Pay API\n\nThe Bob Pay API enables seamless integration with Bob Pay, allowing you to start accepting payments quickly and easily.\n\n## **Getting started**\n\nBefore going live, you can use the fully functional sandbox environment to test and implement your API integration. This environment mirrors the behaviour of the production system but does not process real transactions, providing a safe space for testing.\n\nTo begin, register for a [sandbox account](https://sandbox.bobpay.co.za/) to obtain your API keys, which can be found in the settings menu. The sandbox environment supports all available endpoints.\n\n**Sandbox Base URL:** [https://api.sandbox.bobpay.co.za/v2/](https://api.sandbox.bobpay.co.za/v2/)\n\n## **Switching to production**\n\nWhen you’re ready to go live, you can transition from the sandbox to the production environment by updating the endpoint URLs and API keys.\n\n**Production Base URL:** [https://api.bobpay.co.za/v2/](https://api.bobpay.co.za/v2/)\n\n## Support\n\nIf you need assistance at any stage of your integration, our support team is here to help.  \nFor technical issues, implementation questions, or general inquiries, please reach out to us at:\n\n📧 Email: [support@bobpay.co.za](https://mailto:support@bobpay.co.za)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27675197",
+		"_collection_link": "https://bob-pay.postman.co/workspace/Bob-Pay~4ba7865d-f705-4797-8ace-d81f97a73413/collection/27675197-034611b0-a015-4ece-af10-57aecff1e211?action=share&source=collection_link&creator=27675197"
+	},
+	"item": [
+		{
+			"name": "Getting started",
+			"item": [],
+			"description": "## Generating a Payment URL\n\nTo direct your customer to the Bob Pay payment screen, you will need to create a payment URL and then navigate to that URL.\n\n- **Sandbox environment**: `https://sandbox.bobpay.co.za`\n    \n- **Production environment**: `https://my.bobpay.co.za`\n    \n\n### Create the Payment URL\n\n**Endpoint:** `POST /payments/intents/link`\n\n**Authentication:** Required - API Key or Bearer Token\n\n**Description:** Creates a payment intent and returns a unique payment URL. Your application should navigate to this URL to direct your customer to the Bob Pay payment page where they can complete their payment using their preferred payment method.\n\n#### Request Headers\n\n``` http\nContent-Type: application/json\nAuthorization: Bearer YOUR_API_TOKEN\n\n ```\n\n#### Request Body\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| `amount` | float | Yes | The payment amount in ZAR. Must be greater than zero. |\n| `email` | string | Conditional\\* | Customer's email address. |\n| `mobile_number` | string | Conditional\\* | Customer's mobile number in international format (e.g., +27821234567). |\n| `item_name` | string | No | Name of the product or service being purchased. |\n| `item_description` | string | No | Detailed description of the product or service. |\n| `custom_payment_id` | string | No | Your unique reference/identifier for this payment. If not provided, a UUID will be generated automatically. |\n| `notify_url` | string | Yes | Webhook URL where payment status notifications will be sent. |\n| `success_url` | string | Yes | URL to redirect the customer after a successful payment. |\n| `pending_url` | string | Yes | URL to redirect the customer when the payment is pending. |\n| `cancel_url` | string | Yes | URL to redirect the customer if they cancel the payment. |\n| `short_url` | boolean | No | If set to `true`, a shortened URL will also be generated and returned. Default: `false`. |\n\n\\* **Note:** Either `email` or `mobile_number` must be provided.\n\n#### Example Request\n\n``` json\n{\n  \"amount\": 1299.99,\n  \"email\": \"customer@example.com\",\n  \"mobile_number\": \"+27821234567\",\n  \"item_name\": \"Wireless Bluetooth Headphones\",\n  \"item_description\": \"Premium noise-cancelling wireless headphones - Black\",\n  \"custom_payment_id\": \"ORDER-2024-001\",\n  \"notify_url\": \"https://yourwebsite.co.za/webhook/payment-notification\",\n  \"success_url\": \"https://yourwebsite.co.za/payment/success\",\n  \"pending_url\": \"https://yourwebsite.co.za/payment/pending\",\n  \"cancel_url\": \"https://yourwebsite.co.za/payment/cancelled\",\n  \"short_url\": true\n}\n\n ```\n\n#### Response\n\n**Success Response (200 OK):**\n\n``` json\n{\n  \"url\": \"https://sandbox.bobpay.co.za/pay?p=550e8400-e29b-41d4-a716-446655440000\",\n  \"short_url\": \"https://short.bobpay.co.za/abc123\"\n}\n\n ```\n\n| Field | Type | Description |\n| --- | --- | --- |\n| `url` | string | The full payment URL to redirect your customer to. |\n| `short_url` | string | The shortened payment URL (only present if `short_url: true` was requested). |\n\n#### Usage Notes\n\n1. **Navigation Flow:** After receiving the payment URL in the response, your application should immediately redirect/navigate the user's browser to this URL. This typically happens during your checkout process.\n    \n2. **Webhook Notifications:** Bob Pay will send POST requests to your `notify_url` with payment status updates. Ensure your webhook endpoint is publicly accessible and can handle POST requests.\n    \n3. **URL Best Practices:**\n    \n    - All callback URLs (notify_url, success_url, pending_url, cancel_url) must be valid HTTPS URLs\n        \n    - Use the `short_url` option if you need to store or display a shorter URL\n        \n    - Include query parameters in your callback URLs to track which payment they relate to\n        \n4. **Custom Payment ID:** Use the `custom_payment_id` field to link the Bob Pay payment to your internal order/transaction system. This ID will be included in webhook notifications.\n    \n\n#### Complete Integration Example\n\n``` javascript\n// Example using Node.js and Express\nconst axios = require(\"axios\");\nconst express = require(\"express\");\nconst app = express();\napp.post(\"/checkout\", async (req, res) => {\n  try {\n    const orderDetails = req.body;\n    // Create the payment link\n    const response = await axios.post(\n      \"https://api.sandbox.bobpay.co.za/payments/intents/link\",\n      {\n        amount: orderDetails.totalAmount,\n        email: orderDetails.customerEmail,\n        mobile_number: orderDetails.customerMobile,\n        item_name: orderDetails.productName,\n        item_description: orderDetails.productDescription,\n        custom_payment_id: orderDetails.orderId,\n        notify_url: \"https://yourwebsite.com/webhook/payment\",\n        success_url: `https://yourwebsite.com/order/${orderDetails.orderId}/success`,\n        pending_url: `https://yourwebsite.com/order/${orderDetails.orderId}/pending`,\n        cancel_url: `https://yourwebsite.com/order/${orderDetails.orderId}/cancelled`,\n        short_url: false,\n      },\n      {\n        headers: {\n          \"Content-Type\": \"application/json\",\n          Authorization: `Bearer ${process.env.BOBPAY_API_TOKEN}`,\n        },\n      }\n    );\n    // Redirect the customer to Bob Pay payment page\n    const paymentUrl = response.data.url;\n    res.redirect(paymentUrl);\n  } catch (error) {\n    console.error(\n      \"Error creating payment link:\",\n      error.response?.data || error.message\n    );\n    res.status(500).send(\"Payment initialization failed\");\n  }\n});\n\n ```\n\n### Payment Methods\n\nBy default, when a customer visits the payment URL, they are presented with all available payment methods enabled for your merchant account. However, you can direct customers to a specific payment method by adding the `payment_method` query parameter to the payment URL.\n\n#### Usage\n\nAdd `payment_method` to your payment URL:\n\n``` url\nhttps://sandbox.bobpay.co.za/pay?p=550e8400-e29b-41d4-a716-446655440000&payment_method=instant-eft\n\n ```\n\n#### Available Payment Methods\n\n| Value | Description |\n| --- | --- |\n| `account-balance` | Pay using Bob Pay account balance |\n| `statement` | Upload bank statement for verification |\n| `credit-card` | Credit or debit card payment (Visa, Mastercard, Amex, Diners) |\n| `instant-eft` | Real-time bank transfer via Instant EFT |\n| `manual-eft` | Upload proof of payment for manual EFT transfer |\n| `pay-shap` | PayShap instant payment method |\n| `capitec-pay` | Capitec Pay instant payment method |\n| `scan-to-pay` | Scan to Pay (QR code payment) |\n| `nedbank-direct-eft` | Nedbank Direct EFT instant payment method |\n| `absa-pay` | Absa Pay instant payment method |\n\n#### Important Notes\n\n1. **Payment Method Availability:** Not all payment methods may be available for your account. Payment methods are subject to:\n    \n    - Global payment method activation status\n        \n    - Merchant account-specific settings\n        \n    - Transaction amount limits per payment method\n        \n    - Account status and permissions\n        \n2. **Transaction Limits:** Each payment method has a maximum transaction amount. If the payment amount exceeds the limit for a specified payment method, that method will be shown as inactive.\n    \n3. **Fallback Behavior:** If you specify a payment method that is not available or inactive, the customer will see it as disabled with an appropriate message.\n    \n4. **Multiple Payment Methods:** To allow customers to choose from all available payment methods, simply omit the `payment_method` parameter from the URL.\n    \n\n### Handling Notifications\n\nWhen a payment is completed, Bob Pay sends a POST notification to the `notify_url` you specified when creating the payment intent. This webhook notification contains the complete payment details.\n\n#### Webhook Request\n\n**Method:** POST\n\n**Content-Type:** application/json\n\n**Request Body Example:**\n\n``` json\n{\n  \"id\": 12345,\n  \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"short_reference\": \"BP1234\",\n  \"custom_payment_id\": \"ORDER-2024-001\",\n  \"amount\": 1299.99,\n  \"paid_amount\": 1299.99,\n  \"total_paid_amount\": 1299.99,\n  \"status\": \"paid\",\n  \"payment_method\": \"instant-eft\",\n  \"original_requested_payment_method\": \"instant-eft\",\n  \"payment_id\": 67890,\n  \"payment\": {\n    \"id\": 67890,\n    \"payment_method_id\": 3,\n    \"payment_method\": \"instant-eft\",\n    \"amount\": 1299.99,\n    \"status\": \"complete\"\n  },\n  \"item_name\": \"Wireless Bluetooth Headphones\",\n  \"item_description\": \"Premium noise-cancelling wireless headphones - Black\",\n  \"recipient_account_code\": \"ABC123\",\n  \"recipient_account_id\": 100,\n  \"email\": \"customer@example.com\",\n  \"mobile_number\": \"+27821234567\",\n  \"from_bank\": \"FNB\",\n  \"time_created\": \"2024-01-15T10:30:00Z\",\n  \"is_test\": false,\n  \"signature\": \"5d41402abc4b2a76b9719d911017c592\",\n  \"notify_url\": \"https://yourwebsite.co.za/webhook/payment-notification\",\n  \"success_url\": \"https://yourwebsite.co.za/payment/success\",\n  \"pending_url\": \"https://yourwebsite.co.za/payment/pending\",\n  \"cancel_url\": \"https://yourwebsite.co.za/payment/cancelled\"\n}\n\n ```\n\nThe webhook URL will also include a query parameter: `?type=payment`\n\n#### Security & Validation\n\nTo ensure the webhook is legitimate and the payment is valid, you must perform the following security checks:\n\n##### 1\\. Verify Source IP Address\n\nAll webhook requests originate from Bob Pay's static IP addresses. Verify that the request comes from one of these IPs:\n\n- **Sandbox environment:** `13.246.115.225`\n    \n- **Production environment:** `13.246.100.25`\n    \n\n##### 2\\. Verify the Signature\n\nThe `signature` field in the webhook payload is an MD5 hash that you should verify to confirm the data hasn't been tampered with.\n\n**Signature Calculation:**\n\n``` javascript\n// Example: Node.js signature verification\nconst crypto = require(\"crypto\");\nfunction verifySignature(webhookData, accountPassphrase) {\n  const keyValuePairs = [\n    `recipient_account_code=${encodeURIComponent(\n      webhookData.recipient_account_code\n    )}`,\n    `custom_payment_id=${encodeURIComponent(webhookData.custom_payment_id)}`,\n    `email=${encodeURIComponent(webhookData.email || \"\")}`,\n    `mobile_number=${encodeURIComponent(webhookData.mobile_number || \"\")}`,\n    `amount=${webhookData.amount.toFixed(2)}`,\n    `item_name=${encodeURIComponent(webhookData.item_name || \"\")}`,\n    `item_description=${encodeURIComponent(\n      webhookData.item_description || \"\"\n    )}`,\n    `notify_url=${encodeURIComponent(webhookData.notify_url)}`,\n    `success_url=${encodeURIComponent(webhookData.success_url)}`,\n    `pending_url=${encodeURIComponent(webhookData.pending_url)}`,\n    `cancel_url=${encodeURIComponent(webhookData.cancel_url)}`,\n  ];\n  const signatureString =\n    keyValuePairs.join(\"&\") + `&passphrase=${accountPassphrase}`;\n  const calculatedSignature = crypto\n    .createHash(\"md5\")\n    .update(signatureString)\n    .digest(\"hex\");\n  return calculatedSignature === webhookData.signature;\n}\n\n ```\n\n**Note:** The account passphrase is a secret key associated with your merchant account. This passphrase can be found on your account\n\n##### 3\\. Verify Payment with Bob Pay\n\nAfter verifying the signature, you should confirm the payment's validity with Bob Pay by calling the validation endpoint with the full webhook payload.\n\n**Endpoint:** `POST /payments/intents/validate`\n\n**Request Body:** Send the complete webhook payload you received\n\n``` json\n{\n  \"id\": 12345,\n  \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"short_reference\": \"BP1234\",\n  \"custom_payment_id\": \"ORDER-2024-001\",\n  \"amount\": 1299.99,\n  \"paid_amount\": 1299.99,\n  \"total_paid_amount\": 1299.99,\n  \"status\": \"paid\",\n  \"payment_method\": \"instant-eft\",\n  \"original_requested_payment_method\": \"instant-eft\",\n  \"payment_id\": 67890,\n  \"payment\": {\n    \"id\": 67890,\n    \"payment_method_id\": 3,\n    \"payment_method\": \"instant-eft\",\n    \"amount\": 1299.99,\n    \"status\": \"complete\"\n  },\n  \"item_name\": \"Wireless Bluetooth Headphones\",\n  \"item_description\": \"Premium noise-cancelling wireless headphones - Black\",\n  \"recipient_account_code\": \"ABC123\",\n  \"recipient_account_id\": 100,\n  \"email\": \"customer@example.com\",\n  \"mobile_number\": \"+27821234567\",\n  \"from_bank\": \"FNB\",\n  \"time_created\": \"2024-01-15T10:30:00Z\",\n  \"is_test\": false,\n  \"signature\": \"5d41402abc4b2a76b9719d911017c592\",\n  \"notify_url\": \"https://yourwebsite.co.za/webhook/payment-notification\",\n  \"success_url\": \"https://yourwebsite.co.za/payment/success\",\n  \"pending_url\": \"https://yourwebsite.co.za/payment/pending\",\n  \"cancel_url\": \"https://yourwebsite.co.za/payment/cancelled\"\n}\n\n ```\n\n**Success Response (200 OK):** The payment is valid and confirmed.\n\n**Error Response:** The payment could not be verified or doesn't match.\n\n##### 4\\. Verify the Amount\n\nEnsure the `paid_amount` matches the expected amount for your order. Note that some payment methods may allow non-exact payments if enabled for your account.\n\n#### Responding to Webhooks\n\n**Important:** You must return a `200 OK` HTTP status code to acknowledge receipt of the webhook. If Bob Pay doesn't receive a 200 OK response, it will retry sending the webhook.\n\n``` javascript\n// Example: Express.js webhook endpoint\napp.post(\"/webhook/payment-notification\", async (req, res) => {\n  try {\n    const webhookData = req.body;\n    // 1. Verify source IP\n    const clientIp = req.ip || req.connection.remoteAddress;\n    const allowedIPs = [\"13.246.115.225\", \"13.246.100.25\"]; // Sandbox and Production\n    if (!allowedIPs.includes(clientIp)) {\n      return res.status(403).send(\"Forbidden\");\n    }\n    // 2. Verify signature\n    const isValidSignature = verifySignature(webhookData, YOUR_PASSPHRASE);\n    if (!isValidSignature) {\n      return res.status(400).send(\"Invalid signature\");\n    }\n    // 3. Verify amount\n    const expectedAmount = await getOrderAmount(webhookData.custom_payment_id);\n    if (webhookData.paid_amount !== expectedAmount) {\n      return res.status(400).send(\"Amount mismatch\");\n    }\n    // 4. Validate with Bob Pay (send full webhook payload)\n    const validationResponse = await axios.post(\n      \"https://api.sandbox.bobpay.co.za/payments/intents/validate\",\n      webhookData,\n      {\n        headers: {\n          Authorization: `Bearer ${process.env.BOBPAY_API_TOKEN}`,\n          \"Content-Type\": \"application/json\",\n        },\n      }\n    );\n    // 5. Process the payment in your system\n    await processOrder(webhookData.custom_payment_id, webhookData);\n    // 6. Return 200 OK to acknowledge receipt\n    res.status(200).send(\"OK\");\n  } catch (error) {\n    console.error(\"Webhook processing error:\", error);\n    // Still return 200 if you've successfully received and logged the webhook\n    // to prevent retries for processing errors\n    res.status(200).send(\"Received\");\n  }\n});\n\n ```\n\n#### Webhook Retry Mechanism\n\nIf Bob Pay doesn't receive a `200 OK` response from your webhook endpoint, it will automatically retry sending the notification using an exponential backoff strategy:\n\n**Retry Schedule:** Bob Pay has a backoff retry schedule with up to 17 retries over approximately 24 hours.\n\n**Best Practices:**\n\n- Make your webhook endpoint idempotent (able to handle duplicate notifications safely)\n    \n- Use the `uuid` or `custom_payment_id` to prevent processing the same payment multiple times\n    \n- Store webhook receipts in your database to track which notifications you've already processed\n    \n- Return `200 OK` as quickly as possible; perform time-consuming operations asynchronously\n    \n\n#### Payment Statuses\n\n| Status | Description |\n| --- | --- |\n| `paid` | Payment completed successfully |\n| `unpaid` | Payment intent created but not yet paid |\n| `failed` | Payment failed or was declined |\n| `cancelled` | Payment was cancelled by the customer or system |\n| `processing` | Payment is being processed (typically for async payment methods) |\n| `refunded` | Payment has been refunded (you'll receive a separate notification for refunds) |\n\n#### Troubleshooting\n\n1. **Not receiving webhooks?**\n    \n    - Ensure your `notify_url` is publicly accessible (not localhost)\n        \n    - Verify your server accepts POST requests\n        \n    - Check your firewall allows traffic from Bob Pay's IP addresses\n        \n    - Ensure your endpoint returns a 200 OK status code\n        \n2. **Receiving duplicate webhooks?**\n    \n    - Implement idempotency using the `uuid` field\n        \n    - Check if your endpoint is returning non-200 status codes\n        \n3. **Signature validation failing?**\n    \n    - Ensure you're using the correct passphrase\n        \n    - Verify you're URL-encoding values correctly\n        \n    - Check that you're using the exact fields in the correct order\n        \n    - Ensure you're formatting the amount to 2 decimal places"
+		},
+		{
+			"name": "Payment links",
+			"item": [
+				{
+					"name": "Payment links",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recipient_account_code\": \"SAN001\",\n    \"custom_payment_id\": \"478\",\n    \"email\": \"customer@gmail.co.za\",\n    \"phone_number\": \"\",\n    \"amount\": 499.99,\n    \"item_name\": \"Order 1452\",\n    \"item_description\": \"Lego Star Wars\",\n    \"notify_url\": \"https://api-sandbox.mystore.co.za/payment/bobpay\",\n    \"success_url\": \"https://sandbox.mystore.co.za/accounts/payment-confirmation\",\n    \"pending_url\": \"https://sandbox.mystore.co.za/accounts/payment-confirmation\",\n    \"cancel_url\": \"https://sandbox.mystore.co.za/accounts/payment-cancel\",\n    \"transacting_as_email\": \"customer@gmail.co.za\",\n    \"short_url\": true\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/payments/intents/link",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"payments",
+								"intents",
+								"link"
+							]
+						},
+						"description": "### Create Payment Link\n\nThis endpoint allows you to generate a unique, secure payment link for a customer, which they can use to complete payment via supported methods. Optionally, a shortened URL can be returned for easier sharing.\n\n---\n\n#### Request\n\n**Method:** POST  \n**URL:** `https://api.sandbox.bobpay.co.za/payments/link`\n\n---\n\n#### Request Body Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| recipient_account_code | The code of the account to receive the payment. | string | Yes |\n| custom_payment_id | Custom identifier for the payment. | string | Yes |\n| email | Payer's email address. | string | No |\n| phone_number | Payer's phone number. | string | No |\n| amount | The payment amount. | float | Yes |\n| item_name | Name of the item being purchased. | string | Yes |\n| item_description | Description of the item. | string | No |\n| notify_url | URL to send payment status notifications. | string | No |\n| success_url | URL to redirect to on successful payment. | string | No |\n| pending_url | URL to redirect to if payment is pending. | string | No |\n| cancel_url | URL to redirect to if payment is cancelled. | string | No |\n| signature | The signature previously generated for this payment intent. | string | Yes |\n| transacting_as_email | The payer's email address (if acting on behalf of another). | string | No |\n| short_url | Set to `true` to return a shortened payment link. | boolean | No |\n\n---\n\n#### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n**Response Body**\n\n``` json\n{\n    \"url\": \"https://sandbox.bobpay.co.za/pay?p=c20d0783-eca4-4086-92bd-3d9caec84daa\",\n    \"short_url\": \"https://api.sandbox.bob.co.za/r/V4X7WG\"\n}\n\n ```\n\n---\n\n#### Response Fields\n\n| Field | Description | Type |\n| --- | --- | --- |\n| url | The unique payment link for the transaction. | string |\n| short_url | Shortened version of the payment link. | string |"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validate with Bob Pay",
+			"item": [
+				{
+					"name": "Validate with Bob Pay",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 12345,\n  \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"short_reference\": \"BP1234\",\n  \"custom_payment_id\": \"ORDER-2024-001\",\n  \"amount\": 1299.99,\n  \"paid_amount\": 1299.99,\n  \"total_paid_amount\": 1299.99,\n  \"status\": \"paid\",\n  \"payment_method\": \"instant-eft\",\n  \"original_requested_payment_method\": \"instant-eft\",\n  \"payment_id\": 67890,\n  \"payment\": {\n    \"id\": 67890,\n    \"payment_method_id\": 3,\n    \"payment_method\": \"instant-eft\",\n    \"amount\": 1299.99,\n    \"status\": \"complete\"\n  },\n  \"item_name\": \"Wireless Bluetooth Headphones\",\n  \"item_description\": \"Premium noise-cancelling wireless headphones - Black\",\n  \"recipient_account_code\": \"ABC123\",\n  \"recipient_account_id\": 100,\n  \"email\": \"customer@example.com\",\n  \"mobile_number\": \"+27821234567\",\n  \"from_bank\": \"FNB\",\n  \"time_created\": \"2024-01-15T10:30:00Z\",\n  \"is_test\": false,\n  \"signature\": \"5d41402abc4b2a76b9719d911017c592\",\n  \"notify_url\": \"https://yourwebsite.co.za/webhook/payment-notification\",\n  \"success_url\": \"https://yourwebsite.co.za/payment/success\",\n  \"pending_url\": \"https://yourwebsite.co.za/payment/pending\",\n  \"cancel_url\": \"https://yourwebsite.co.za/payment/cancelled\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/payments/intents/validate",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"payments",
+								"intents",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"access_token\", pm.response.json().access_token);",
+									"pm.environment.set(\"access_token\", pm.response.json().access_token);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"johan+sandbox@bob.co.za\",\n    \"password\": \"sandboxtest\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/login",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "# Login\n\nBob Pay uses **Bearer Token** Authentication\n\nAfter login a JWT token will be returned, simply add the token as a header to all your API calls e.g. `\"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjMtMTEtMjlUMTM6NDE6MzkuMDQyMjc5OTkxKzAyOjAwIiwidXNlcl9pZCI6IjIzOSJ9.XRviwAaGgSkzd1SjfOllpclemMpeJnb-ywj_68TPyBE\"`\n\nThis token will expiry after 30 days then a new token needs to be generated\n\nuser: [johan+sandbox@bob.co.za](https://mailto:johan+sandbox@bob.co.za) , [bobpay-sandbox@bob.co.za](https://mailto:bobpay-sandbox@bob.co.za)  \npassword: `sandboxtest`  \nPassphrase : `0W5LORYafx`"
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Payment Intent",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDUtMTdUMTQ6MzY6NDIuNjI0OTUxMTY2KzAyOjAwIiwidXNlcl9pZCI6IjQ1NDAifQ.G9FJZ-p3iQO7c5ZRqVwZsshyStkVpx-GcrlZKq_VQFc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payments/intents?include_retained_amount=true",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payments",
+								"intents"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "75567",
+									"disabled": true
+								},
+								{
+									"key": "from_bank",
+									"value": "standard-bank",
+									"disabled": true
+								},
+								{
+									"key": "account_id",
+									"value": "259",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "38NGB",
+									"disabled": true
+								},
+								{
+									"key": "csv",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "2024-04-18 00:00:00",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "2024-06-18 23:59:59",
+									"disabled": true
+								},
+								{
+									"key": "order",
+									"value": "DESC",
+									"disabled": true
+								},
+								{
+									"key": "order_by",
+									"value": "status",
+									"disabled": true
+								},
+								{
+									"key": "include_retained_amount",
+									"value": "true"
+								}
+							]
+						},
+						"description": "This endpoint allows you to query and retrieve comprehensive information about payments across your accounts. With support for a variety of filters, you can refine your search to access specific payment details. This endpoint also provides an option to export the query results into a CSV file, facilitating further analysis and record-keeping. Use this endpoint to efficiently monitor and manage your payment activities.\n\nAvailable parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| id | The ID of a payment record. | integer | No |\n| statuses | Array of one or combination of statuses: paid, unpaid, canceled, refunded. | array of string | No |\n| from_bank | From bank. One of: standard-bank, fnb, nedbank, absa, capitec, investec, bank-zero, tyme-bank, discovery-bank. | string | No |\n| recipient_account_id | Pass in the recipient_account_id to get payments received. | integer | No |\n| account_id | Pass in account_id to get payments made. | integer | No |\n| search | Search for case-insensitive partial matching payment references. | string | No |\n| csv | Use true to export results to a CSV file. Large files will be emailed. | boolean | No |\n| start_date | Start date for the time period (format: YYYY-MM-DD HH:MM:SS). | string (date/time) | No |\n| end_date | End date for the time period (format: YYYY-MM-DD HH:MM:SS). | string (date/time) | No |\n| limit | Limit the number of records returned. | integer | No |\n| offset | The number of records to skip (for pagination). | integer | No |\n| order | ASC / DESC | string | No |\n| order_by | Order by any field. | string | No |\n| include_retained_amount | If true, include retained amounts in the results. | boolean | No |\n| is_high_risk | Filter to high risk payments only. | boolean | No |\n\n#### Response Example\n\n``` json\n{\n    \"id\": 37499,\n    \"payment_method_id\": 167,\n    \"payment_intent_id\": 54370,\n    \"reference\": \"3WFFG\",\n    \"custom_payment_id\": \"265\",\n    \"amount\": 200,\n    \"payment_method\": \"credit-card\",\n    \"status\": \"success\",\n    \"account_id\": 208,\n    \"account\": {\n        \"id\": 208,\n        \"name\": \"Auto-generated account\",\n        \"account_code\": \"AUT002\",\n        \"signup_name\": \"Sandbox User\",\n        \"is_merchant\": false\n    },\n    \"recipient_account_id\": 209,\n    \"recipient_account\": {\n        \"id\": 209,\n        \"name\": \"Bob Go\",\n        \"account_code\": \"BOB001\",\n        \"signup_name\": \"John Doe\",\n        \"is_merchant\": true\n    },\n    \"time_created\": \"2024-06-12T11:14:07.16374+02:00\"\n}\n\n ```\n\n---\n\n#### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| id | Unique identifier for the payment record. | integer |\n| payment_method_id | Internal ID of the payment method used. | integer |\n| payment_intent_id | ID of the related payment intent, if available. | integer |\n| reference | Reference for the payment (may be auto-generated). | string |\n| custom_payment_id | Custom identifier for the payment (business reconciliation). | string |\n| amount | Payment amount. | float |\n| payment_method | Payment method used (e.g., credit-card, instant-eft). | string |\n| status | Payment status (`success`, `pending`, etc.). | string |\n| account_id | ID of the account that initiated the payment. | integer |\n| account | The payer’s account object (see below for nested fields). | object |\n| recipient_account_id | ID of the recipient (payee) account. | integer |\n| recipient_account | The recipient’s account object (see below for nested fields). | object |\n| time_created | Timestamp when the payment was created (ISO 8601 format). | string (date-time) |\n\n**account / recipient_account nested fields:**\n\n| Key | Description | Type |\n| --- | --- | --- |\n| id | Account ID | integer |\n| name | Account name | string |\n| account_code | Unique code of the account | string |\n| signup_name | Signup name for the account | string |\n| is_merchant | Whether the account is a merchant | boolean |"
+					},
+					"response": []
+				},
+				{
+					"name": "Payment methods public",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payments/payment-methods/public",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payments",
+								"payment-methods",
+								"public"
+							],
+							"query": [
+								{
+									"key": "account_code",
+									"value": "BOB010",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Public Payment Methods\n\nThis endpoint retrieves the list of payment methods available for a specific account, including their status and display order.\n\n### Request\n\n**Method:** `GET`  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/payments/payment-methods/public`\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| account_code | The unique code identifying the account. | string | Yes |\n\n---\n\n### Response\n\n**Status Code:** `200 OK`  \n**Content-Type:** `application/json`\n\n#### Response Body\n\n``` json\n{\n    \"payment_methods\": [\n        {\n            \"name\": \"absa-pay\",\n            \"status\": \"inactive\",\n            \"order\": 8\n        },\n        {\n            \"name\": \"credit-card\",\n            \"status\": \"active\",\n            \"order\": 1\n        },\n        {\n            \"name\": \"instant-eft\",\n            \"status\": \"active\",\n            \"order\": 2\n        },\n        {\n            \"name\": \"account-balance\",\n            \"status\": \"active\",\n            \"order\": 0\n        },\n        {\n            \"name\": \"pay-shap\",\n            \"status\": \"active\",\n            \"order\": 4\n        },\n        {\n            \"name\": \"manual-eft\",\n            \"status\": \"active\",\n            \"order\": 3\n        },\n        {\n            \"name\": \"capitec-pay\",\n            \"status\": \"active\",\n            \"order\": 5\n        },\n        {\n            \"name\": \"scan-to-pay\",\n            \"status\": \"active\",\n            \"order\": 6\n        },\n        {\n            \"name\": \"nedbank-direct-eft\",\n            \"status\": \"active\",\n            \"order\": 7\n        }\n    ]\n}\n\n ```\n\n---\n\n#### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| payment_methods | Array of available payment method objects for the specified account. | string |\n| name | The unique name/identifier of the payment method. | string |\n| status | The activation status of the payment method. | string |\n| order | The display order for the payment method (lower number = higher priority). | integer |"
+					},
+					"response": []
+				},
+				{
+					"name": "Refund payment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDgtMjBUMTU6NDE6MDQuMzMyNzgzNDIzKzAyOjAwIiwidXNlcl9pZCI6IjUzMCJ9.xx7SG_cX-tUzNNTJJpfqaqKvoptAiGHDGUKF975x_TI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\":72052\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payments/reversal",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payments",
+								"reversal"
+							]
+						},
+						"description": "## Refund Payment (Payment Reversal)\n\nThis endpoint enables you to initiate a refund for a specific payment. It allows you to process payment reversals efficiently, ensuring that refunds are handled seamlessly. By using this endpoint, you can manage refunds directly through the API, providing a streamlined solution for correcting transactions and addressing customer refund requests.\n\n---\n\n### Request\n\n**Method:** POST  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/payments/reversal`\n\n---\n\n#### Request Body Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| id | ID of the payment record to refund. | integer | Yes |\n\n**Example:**\n\n``` json\n{\n    \"id\": 72052\n}\n\n ```\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n---\n\n#### Response Body\n\n``` json\n{\n    \"payment_method\": {\n        \"id\": 1186,\n        \"payment_intent_id\": 114092,\n        \"payment_intent_reference\": \"3R3PW\",\n        \"account_id\": 377,\n        \"account\": {\n            \"id\": 377,\n            \"name\": \"Auto-generated account\",\n            \"account_code\": \"AUT065\",\n            \"signup_name\": null,\n            \"is_merchant\": false\n        },\n        \"recipient_account_id\": 370,\n        \"recipient_account\": {\n            \"id\": 370,\n            \"name\": \"Bob shop\",\n            \"account_code\": \"BOB010\",\n            \"signup_name\": \"Sandbox User\",\n            \"merchant_start_date\": \"2024-11-29T11:06:28.425924+02:00\",\n            \"is_merchant\": true\n        },\n        \"amount\": 5,\n        \"description\": \"Payment\",\n        \"error_message\": \"\",\n        \"remote_ip\": \"10.10.10.10\",\n        \"request\": \"{...}\",\n        \"response\": \"{...}\",\n        \"status\": \"refunded\",\n        \"transaction_date\": \"2025-07-17T11:47:23.321682+02:00\",\n        \"type\": \"payment\",\n        \"time_created\": \"2025-07-17T11:47:23.323953+02:00\",\n        \"time_modified\": \"2025-07-17T11:47:39.619253+02:00\",\n        \"merchant_reference\": \"Bob Pay_Bob shop_1186\",\n        \"use_merchant_iveri_details\": true,\n        \"three_d_secure_active\": true,\n        \"transaction_index\": \"{CBB8EE0C-EF7B-4790-B98B-0AA2835EBDA0}\",\n        \"saved_card_id\": null,\n        \"custom_payment_id\": \"13840594\",\n        \"bank_statement_transaction_id\": null,\n        \"jurisdiction\": \"Local\",\n        \"card_association\": \"VISA\",\n        \"card_type\": \"Unknown CardType\",\n        \"risk_score\": null,\n        \"max_mind_request\": null,\n        \"max_mind_response\": null,\n        \"merchant_id\": \"7771777\",\n        \"batch_number\": \"96633\",\n        \"recon_reference\": \"05346913\",\n        \"credit_card_details_encrypted\": \"\",\n        \"from_bank\": \"\",\n        \"payment_reversals\": null,\n        \"is_debit_card\": false\n    },\n    \"reversed_directly_to_bank\": true,\n    \"PaymentMethod\": { /* same as payment_method */ },\n    \"ReversedDirectlyToBank\": true\n}\n\n ```\n\n---\n\n#### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| payment_method | Object with details about the reversed payment. | object |\n| payment_method.id | Unique payment record ID. | integer |\n| payment_method.payment_intent_id | Payment intent ID linked to this payment. | integer |\n| payment_method.payment_intent_reference | Short payment intent reference. | string |\n| payment_method.account_id | Originating account ID. | integer |\n| payment_method.account | Object with originating account details. | object |\n| payment_method.account.id | Account ID. | integer |\n| payment_method.account.name | Account name. | string |\n| payment_method.account.account_code | Unique account code. | string |\n| payment_method.account.signup_name | Signup name (if provided). | string |\n| payment_method.account.is_merchant | True if this account is a merchant. | boolean |\n| payment_method.recipient_account_id | Recipient account ID. | integer |\n| payment_method.recipient_account | Object with recipient account details. | object |\n| payment_method.recipient_account.id | Account ID. | integer |\n| payment_method.recipient_account.name | Account name. | string |\n| payment_method.recipient_account.account_code | Unique account code. | string |\n| payment_method.recipient_account.signup_name | Signup name (if provided). | string |\n| payment_method.recipient_account.merchant_start_date | Merchant start date. | string (date) |\n| payment_method.recipient_account.is_merchant | True if this account is a merchant. | boolean |\n| payment_method.amount | Amount refunded. | float |\n| payment_method.description | Payment description. | string |\n| payment_method.error_message | Any error messages. | string |\n| payment_method.remote_ip | Originating IP address. | string |\n| payment_method.request | Payment request payload (raw). | string |\n| payment_method.response | Payment response payload (raw). | string |\n| payment_method.status | Status of the refund (should be \"refunded\"). | string |\n| payment_method.transaction_date | Transaction date and time. | string (date) |\n| payment_method.type | Type of transaction (e.g., \"payment\"). | string |\n| payment_method.time_created | Time created. | string (date) |\n| payment_method.time_modified | Time last modified. | string (date) |\n| payment_method.merchant_reference | Merchant reference string. | string |\n| payment_method.use_merchant_iveri_details | Use merchant iVeri details. | boolean |\n| payment_method.three_d_secure_active | Whether 3D Secure was active. | boolean |\n| payment_method.transaction_index | Unique transaction index. | string |\n| payment_method.saved_card_id | ID of the saved card used. | integer |\n| payment_method.custom_payment_id | Custom payment identifier. | string |\n| payment_method.bank_statement_transaction_id | Bank statement transaction ID. | integer |\n| payment_method.jurisdiction | Payment jurisdiction. | string |\n| payment_method.card_association | Card association (e.g., VISA). | string |\n| payment_method.card_type | Type of card. | string |\n| payment_method.risk_score | Risk score if risk check performed. | float |\n| payment_method.max_mind_request | MaxMind risk check request. | string |\n| payment_method.max_mind_response | MaxMind risk check response. | string |\n| payment_method.merchant_id | Merchant ID with the acquirer. | string |\n| payment_method.batch_number | Acquirer batch number. | string |\n| payment_method.recon_reference | Acquirer/bank recon reference. | string |\n| payment_method.credit_card_details_encrypted | Encrypted card details. | string |\n| payment_method.from_bank | The source bank for the transaction. | string |\n| payment_method.payment_reversals | Nested reversal objects. | object |\n| payment_method.is_debit_card | True if debit card used. | boolean |\n| reversed_directly_to_bank | True if funds were reversed directly to bank. | boolean |\n| PaymentMethod | Same as payment_method. | object |\n| ReversedDirectlyToBank | Same as reversed_directly_to_bank. | boolean |"
+					},
+					"response": []
+				},
+				{
+					"name": "Signature",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDgtMjBUMTU6NDE6MDQuMzMyNzgzNDIzKzAyOjAwIiwidXNlcl9pZCI6IjUzMCJ9.xx7SG_cX-tUzNNTJJpfqaqKvoptAiGHDGUKF975x_TI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recipient_account_code\": \"SAN001\",\n    \"custom_payment_id\": \"478\",\n    \"email\": \"customer@bob.co.za\",\n    \"phone_number\": \"\",\n    \"amount\": 499.99,\n    \"item_name\": \"Order 1452\",\n    \"item_description\": \"Lego Star Wars\",\n    \"notify_url\": \"https://api-sandbox.bobpay.co.za/payment/bobpay\",\n    \"success_url\": \"https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\",\n    \"pending_url\": \"https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\",\n    \"cancel_url\": \"https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478\",\n    \"signature\": \"587013412f5a5ecdc2081e5954e188b5\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payments/intents/signature",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payments",
+								"intents",
+								"signature"
+							]
+						},
+						"description": "## Create Payment Intent\n\nThis endpoint checks if the signature is valid for a payment intent, using a previou ssly generated signature.\n\n### Request\n\n**Method:** `POST`  \n**URL:** `https://api.sandbox.bobpay.co.za/payments/intents/signature`\n\n#### Request Body Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| recipient_account_code | The code of the account to receive the payment. | string | Yes |\n| custom_payment_id | Custom identifier for the payment. | string | Yes |\n| email | Payer's email address. | string | No |\n| phone_number | Payer's phone number. | string | No |\n| amount | The payment amount. | float | Yes |\n| item_name | Name of the item being purchased. | string | Yes |\n| item_description | Description of the item. | string | No |\n| notify_url | URL to send payment status notifications. | string | No |\n| success_url | URL to redirect to on successful payment. | string | No |\n| pending_url | URL to redirect to if payment is pending. | string | No |\n| cancel_url | URL to redirect to if payment is cancelled. | string | No |\n| signature | The signature previously generated for this payment intent. | string | Yes |\n\n---\n\n### Response\n\n**Status Code:** `200 OK`  \n**Content-Type:** `application/json`\n\n#### Response Body\n\n``` json\n{\n    \"id\": 0,\n    \"uuid\": \"\",\n    \"short_reference\": \"\",\n    \"from_bank\": \"\",\n    \"to_bank\": \"\",\n    \"to_bank_account_number\": \"\",\n    \"to_bank_branch_number\": \"\",\n    \"recipient_account_code\": \"SAN001\",\n    \"recipient_account_id\": null,\n    \"email\": \"customer@bob.co.za\",\n    \"account_id\": null,\n    \"account_code\": null,\n    \"custom_payment_id\": \"478\",\n    \"notify_url\": \"https://api-sandbox.bobpay.co.za/payment/bobpay\",\n    \"success_url\": \"https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\",\n    \"pending_url\": \"https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\",\n    \"cancel_url\": \"https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478\",\n    \"item_name\": \"Order 1452\",\n    \"item_description\": \"Lego Star Wars\",\n    \"amount\": 499.99,\n    \"total_paid_amount\": 0,\n    \"signature\": \"1eb8d2109cb744f0b6a63f168a75ac8e\",\n    \"last_successful_payment_transaction_id\": null,\n    \"successful_debit_transaction_id\": null,\n    \"successful_credit_transaction_id\": null,\n    \"user_requested_payment_confirmed\": null,\n    \"status\": \"\",\n    \"payment_method\": \"\",\n    \"original_requested_payment_method\": \"\",\n    \"payment_id\": 0,\n    \"payment\": {\n        \"id\": 0,\n        \"payment_method_id\": 0,\n        \"payment_method\": \"\",\n        \"amount\": 0,\n        \"status\": \"\"\n    },\n    \"is_test\": false,\n    \"time_created\": null,\n    \"time_modified\": null,\n    \"is_logged_in_request\": false,\n    \"metadata\": null,\n    \"source\": \"\",\n    \"origin\": \"\"\n}\n\n ```\n\n---\n\n#### Response Fields\n\n| Field | Description | Type |\n| --- | --- | --- |\n| id | Unique identifier for the payment intent. | integer |\n| uuid | Universally unique identifier for the payment intent. | string |\n| short_reference | Short reference or code for easy tracking/display. | string |\n| from_bank | Name or code of the originating bank for the payment. | string |\n| to_bank | Name or code of the destination bank for the payment. | string |\n| to_bank_account_number | Destination bank account number. | string |\n| to_bank_branch_number | Destination bank branch number. | string |\n| recipient_account_code | Code of the account receiving the payment. | string |\n| recipient_account_id | Unique identifier of the recipient account. | integer |\n| email | Payer's email address. | string |\n| account_id | Unique identifier of the account initiating the payment. | integer |\n| account_code | Code of the account initiating the payment. | string |\n| custom_payment_id | Your custom reference for the payment. | string |\n| notify_url | URL to notify when payment status changes. | string |\n| success_url | Redirect URL for successful payment. | string |\n| pending_url | Redirect URL for pending payment. | string |\n| cancel_url | Redirect URL for cancelled payment. | string |\n| item_name | Name of the item being purchased. | string |\n| item_description | Description of the item. | string |\n| amount | Amount of the payment intent. | float |\n| total_paid_amount | Amount paid so far towards this intent. | float |\n| signature | Signature used for this intent (should match request). | string |\n| last_successful_payment_transaction_id | ID of the last successful payment transaction linked to this intent. | integer |\n| successful_debit_transaction_id | ID of the successful debit (money out) transaction for this payment intent. | integer |\n| successful_credit_transaction_id | ID of the successful credit (money in) transaction for this payment intent. | integer |\n| user_requested_payment_confirmed | Boolean, indicating if the payer has confirmed the payment (user action). | string (datetime) |\n| status | Current status of the payment intent (`canceled`, `chargeback`, `deleted`, `failed`, `paid`, `partially_refunded`, `refunded`, `unpaid`). | string |\n| payment_method | The actual method used for the payment. | string |\n| original_requested_payment_method | The payment method originally requested by the payer. | string |\n| payment_id | Internal system ID of the payment record associated with this intent. | integer |\n| payment | Object containing payment transaction details (see subfields below). | object |\n| is_test | Boolean flag indicating if this payment intent is a test transaction. | boolean |\n| time_created | Timestamp of when the payment intent was created. | string (datetime) |\n| time_modified | Timestamp of the last modification to the payment intent. | string (datetime) |\n| is_logged_in_request | Boolean flag indicating if the request was made by a logged-in user. | boolean |\n| metadata | Optional additional metadata or info provided for the payment intent. | object |\n| source | The website name where the payment intent originated from. | string |\n| origin | The website URL where the payment intent originated from. | string |\n| payment.id | Unique identifier for the actual payment transaction (not the intent). | integer |\n| payment.payment_method_id | Internal ID referencing the specific payment method used. | integer |\n| payment.payment_method | Name of the payment method used for the transaction. | string |\n| payment.amount | The amount processed in this payment transaction. | float |\n| payment.status | Status of the payment transaction.(`chargeback`, `failed`, `paid`, `partially_refunded`, `pending`, `refunded`, `reversed`, `success`) | string |"
+					},
+					"response": []
+				},
+				{
+					"name": "Shorthen URL",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"url\": \"https://sandbox.bobpay.co.za/pay?amount=499.99&cancel_url=https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478&custom_payment_id=478&email=customer@bob.co.za&item_description=Lego+Star+Wars&item_name=Order+1452&mobile_number=¬ify_url=https://api-sandbox.bobpay.co.za/payment/bobpay&pending_url=https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478&recipient_account_code=SAN001&signature=1eb8d2109cb744f0b6a63f168a75ac8e&success_url=https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payments/intents/shorten",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payments",
+								"intents",
+								"shorten"
+							]
+						},
+						"description": "# Payment Intent URL Shortner\n\n## Endpoint information\n\n**Method:** POST  \n**Endpoint:** `https://api.sandbox.bobpay.co.za/payments/intents/shorten`\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| url | string | Yes | The original URL to shorten |\n\n_Use this endpoint to generate a shortened version of a payment intent URL._\n\n## Request body\n\nSend a JSON payload with the original URL you want to shorten:\n\n``` json\n{\n    \"url\": \"https://sandbox.bobpay.co.za/pay?amount=499.99&cancel_url=https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478&custom_payment_id=478&email=customer@bob.co.za&item_description=Lego+Star+Wars&item_name=Order+1452&mobile_number=¬ify_url=https://api-sandbox.bobpay.co.za/payment/bobpay&pending_url=https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478&recipient_account_code=SAN001&signature=1eb8d2109cb744f0b6a63f168a75ac8e&success_url=https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\"\n}\n\n ```\n\n## Response\n\nIf successful, the API will return a shortened URL like this:\n\n``` json\n{\n    \"short_url\": \"https://api.sandbox.bob.co.za/r/GS9TRC\"\n}\n\n ```"
+					},
+					"response": []
+				}
+			],
+			"description": "The Payments API allows you to query and manage payments across your accounts with a variety of filters to tailor your searches. You can also export the query results into a CSV file for further analysis or record-keeping. This makes it easy to track transactions, monitor account activity, and integrate payment data into your financial systems.\n\n- **GET Payment Intent:** Retrieve all payment intent information or filter by parameters such as account, date, status, or custom references. This endpoint lets you track all initiated payment requests across your business.\n    \n- **GET Payment Methods (Public):** Retrieve the list of available and active payment methods for a specific account, enabling dynamic checkout and payment configuration in your application.\n    \n- **POST Refund Payment:** Initiate a refund for a specific payment, allowing for seamless management of transaction reversals and enhanced customer service.\n    \n- **POST Generate Payment Intent Signature:** Securely generate a signature and payment URL for a new payment intent. This allows your application or website to offer secure pay-by-link or custom checkout flows.\n    \n- **POST Signature Generate:** Typically used to validate or generate cryptographic signatures for advanced security and API integration.\n    \n- **POST Payment Intent URL Shortener:** Generate a shortened version of a payment intent URL. This is useful for sharing concise payment links via email, SMS, or other channels.\n    \n- **POST Payment Link:** Instantly generate a secure, ready-to-use payment link for your customers. Use this endpoint to simplify payment collection for invoices, manual billing, or one-time transactions. You may also request a shortened URL for convenient sharing via email, SMS, or social channels.\n    \n\nThese endpoints make it simple to create, track, update, and reconcile payments, giving you full control over the payment lifecycle from initiation through refund, while maintaining compliance and ease of integration."
+		},
+		{
+			"name": "Payouts",
+			"item": [
+				{
+					"name": "Payout requests",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDYtMjBUMTQ6MzA6MDIuNDc4ODUxKzAyOjAwIiwidXNlcl9pZCI6IjQ1NTYifQ.B2ZvRcvvjAlkCnPns14nmwM6bsEjf4M_24XvKfqMMt0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payout-requests?account_id=4718&order=DESC&offset=0&limit=20&order_by=time_created&status=cancelled",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payout-requests"
+							],
+							"query": [
+								{
+									"key": "account_id",
+									"value": "4718"
+								},
+								{
+									"key": "order",
+									"value": "DESC"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "order_by",
+									"value": "time_created"
+								},
+								{
+									"key": "status",
+									"value": "cancelled"
+								}
+							]
+						},
+						"description": "## Get Payout Request\n\nThis endpoint allows you to retrieve detailed information about payout requests for your accounts. You can filter requests by status, creation date, and more, enabling you to efficiently monitor and manage outgoing payments.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/payout-requests`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| id | The ID of a payout request record. | integer | No |\n| status | The payout request status: pending, rejected, processed. | string | No |\n| order | Sort order: ASC / DESC. | string | No |\n| order_by | Order by any field. | string | No |\n| offset | The number of records to skip (for pagination). | integer | No |\n| limit | Limit the number of records returned. | integer | No |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n**Response Body**\n\n``` json\n{\n    \"payouts\": [\n        {\n            \"id\": 69,\n            \"account_id\": 335,\n            \"account\": {\n                \"id\": 335,\n                \"name\": \"Test Account\",\n                \"account_code\": \"TA001\",\n                \"signup_name\": null,\n                \"merchant_start_date\": \"2025-04-10T09:08:04.303705+02:00\",\n                \"is_merchant\": true\n            },\n            \"account_billing_info\": {\n                \"id\": 237,\n                \"account_id\": 335,\n                \"bank_details_bank\": \"Absa\",\n                \"bank_details_branch_code\": \"000123\",\n                \"bank_details_account_number\": \"12343545\",\n                \"bank_account_type\": \"Cheque / current\",\n                \"bank_account_owner_verification_request\": null,\n                \"bank_account_owner_verification_response\": null,\n                \"bank_account_owner_verification_status\": null\n            },\n            \"amount\": 63992.61,\n            \"status\": \"pending\",\n            \"payout_rejected_reason\": null,\n            \"payout_date\": null,\n            \"transaction_id\": 163333,\n            \"banking_details\": {\n                \"bank\": \"Absa\",\n                \"branch_code\": \"000123\",\n                \"account_number\": \"12343545\",\n                \"account_type\": \"Cheque / current\"\n            },\n            \"time_created\": \"2025-07-21T04:00:43.061748+02:00\",\n            \"time_modified\": \"2025-07-21T04:00:43.061749+02:00\",\n            \"from_bank\": \"fnb\",\n            \"payment_reference\": \"\",\n            \"total_note_count\": 0,\n            \"risk_factors\": {\n                \"is_first_payout_request\": true,\n                \"has_banking_details_changed\": false,\n                \"is_payout_amount_high\": true,\n                \"last_payment_date\": \"\",\n                \"payments_count_to_bank\": 0,\n                \"total_payments_count\": 0,\n                \"average_payout_amount\": 0,\n                \"refund_percentage\": 0,\n                \"card_payments_received_percentage\": 37.60683760683761,\n                \"accounts_sharing_bank_details\": null,\n                \"risk_reasons\": [\n                    \"amount_high\",\n                    \"first_request\",\n                    \"unregistered_website_origin\"\n                ],\n                \"account_is_high_risk\": false,\n                \"payment_intent_origins\": [\n                    {\n                        \"origin\": \"http://localhost:5173/\",\n                        \"payments\": 22,\n                        \"is_registered_origin\": false\n                    },\n                    {\n                        \"origin\": \"https://portal.nedsecure.co.za/\",\n                        \"payments\": 21,\n                        \"is_registered_origin\": false\n                    },\n                    {\n                        \"origin\": \"\",\n                        \"payments\": 74\n                    }\n                ],\n                \"transactions\": {\n                    \"lowest_transaction_amount\": 16.4,\n                    \"highest_transaction_amount\": 3046.63,\n                    \"average_transaction_amount\": 520.28,\n                    \"paid_intent_percentage\": 78\n                }\n            },\n            \"payment_instruction_id\": \"\",\n            \"request\": null,\n            \"response\": null\n        }\n    ],\n    \"count\": 1\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Field | Description | Type |\n| --- | --- | --- |\n| payouts | List of payout request objects | array |\n| payouts\\[\\].id | Unique identifier for the payout request | integer |\n| payouts\\[\\].account_id | The ID of the account requesting payout | integer |\n| payouts\\[\\].account | Account information | object |\n| payouts\\[\\].account_billing_info | Billing/banking info of the account (see subfields below) | object |\n| payouts\\[\\].amount | The payout amount | float |\n| payouts\\[\\].status | Status of the payout request | string |\n| payouts\\[\\].payout_rejected_reason | Reason for payout rejection | string |\n| payouts\\[\\].payout_date | Date the payout was processed | string (datetime) |\n| payouts\\[\\].transaction_id | Related transaction ID | integer |\n| payouts\\[\\].banking_details | Destination banking details (see subfields below) | object |\n| payouts\\[\\].time_created | Timestamp when payout request was created | string (datetime) |\n| payouts\\[\\].time_modified | Timestamp when payout request was last updated | string (datetime) |\n| payouts\\[\\].from_bank | Name or code of the originating bank | string |\n| payouts\\[\\].payment_reference | Payment reference | string |\n| payouts\\[\\].total_note_count | Number of notes attached to the payout request | integer |\n| payouts\\[\\].risk_factors | Risk factors and analysis for this payout (see subfields below) | object |\n| payouts\\[\\].payment_instruction_id | Payment instruction reference | string |\n| payouts\\[\\].request | Additional request data (internal/audit) | object |\n| payouts\\[\\].response | Additional response data (internal/audit) | object |\n| count | Total number of payout requests matching your query | integer |"
+					},
+					"response": []
+				},
+				{
+					"name": "Schedule",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDgtMTVUMTU6MzE6NDIuMjE4Njg5ODErMDI6MDAiLCJ1c2VyX2lkIjoiNjIxNyJ9.7KUypLmlayvy7rrLXi6cZ3eczX9wQUQfvqV2LalsbNw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/payout-requests/schedule",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"payout-requests",
+								"schedule"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "453",
+									"disabled": true
+								},
+								{
+									"key": "ids",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "account_id",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "payout_frequency",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Scheduled Payouts\n\nThis endpoint retrieves the automated payout schedules configured for your account, including frequency, minimum payout amounts, and payout days.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/payout-requests/schedule`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| id | Filter for a specific payout schedule ID. | integer | No |\n| ids | A comma-separated list or array of payout schedule IDs to retrieve. | integer or array | No |\n| account_id | The unique identifier of the account whose payout schedules are requested. | integer | No |\n| payout_frequency | Filter by payout frequency (daily, weekly, or monthly). | string | No |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n**Response Body**\n\n``` json\n{\n    \"payout_request_schedules\": [\n        {\n            \"id\": 13,\n            \"account_id\": 665,\n            \"payout_frequency\": \"monthly\",\n            \"minimum_payout_amount\": 10,\n            \"payout_frequency_day\": 1,\n            \"time_created\": \"2025-03-20T15:16:31.044149+02:00\",\n            \"time_modified\": \"0001-01-01T00:00:00Z\",\n            \"modified_by\": 602\n        }\n        // ...more schedule objects\n    ],\n    \"count\": 15\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| payout_request_schedules | Array of payout schedule objects matching the query parameters. | array |\n| id | Unique identifier for the payout schedule. | integer |\n| account_id | The account associated with the payout schedule. | integer |\n| payout_frequency | Frequency of the scheduled payouts (`daily`, `weekly`, or `monthly`). | string |\n| minimum_payout_amount | The minimum amount required to trigger a payout. | number |\n| payout_frequency_day | The day on which the payout is scheduled (0 = Sunday for weekly, or day of month for monthly). | integer |\n| time_created | Timestamp when the payout schedule was created. | string (datetime) |\n| time_modified | Timestamp when the payout schedule was last modified. | string (datetime) |\n| modified_by | The user ID who last modified the schedule. | integer |\n| count | Total number of payout schedules returned. | integer |\n\n**Note:**\n\nThe `payout_frequency_day` field’s meaning depends on the frequency:\n\n- For **weekly**, it’s the day of the week (0 = Sunday, 6 = Saturday).\n    \n- For **monthly**, it’s the calendar day of the month."
+					},
+					"response": []
+				}
+			],
+			"description": "The Payouts API allows you to manage and query payout requests across your accounts.\n\n- **GET Payout requests**: Retrieve detailed information about payout requests, with the ability to apply various filters to refine your search. This helps in monitoring and managing outgoing payments efficiently.\n    \n- **GET Payout Schedules:** Retrieve all scheduled payout configurations for your account. You can filter by payout frequency (daily, weekly, or monthly), account ID, or specific schedule IDs. This endpoint enables you to view when and how often payouts are processed, the minimum payout amounts, and the configured payout days.\n    \n\nThis endpoint ensures you have full visibility and control over your payout activities."
+		},
+		{
+			"name": "Account settings",
+			"item": [
+				{
+					"name": "Account payment methods",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `",
+									"<style type=\"text/css\">",
+									"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+									"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+									"    .tftable tr {background-color:#ffffff;}",
+									"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+									"    .tftable tr:hover {background-color:#e0ffff;}",
+									"</style>",
+									"",
+									"<table class=\"tftable\" border=\"1\">",
+									"    <tr>",
+									"        <th>ID</th>",
+									"        <th>Account ID</th>",
+									"        <th>Setting</th>",
+									"        <th>Value</th>",
+									"        <th>Time Created</th>",
+									"        <th>Time Modified</th>",
+									"        <th>Is Public</th>",
+									"    </tr>",
+									"    ",
+									"    {{#each response.account_settings}}",
+									"        <tr>",
+									"            <td>{{id}}</td>",
+									"            <td>{{account_id}}</td>",
+									"            <td>{{setting}}</td>",
+									"            <td>{{value}}</td>",
+									"            <td>{{time_created}}</td>",
+									"            <td>{{time_modified}}</td>",
+									"            <td>{{is_public}}</td>",
+									"        </tr>",
+									"    {{/each}}",
+									"    <tr>",
+									"        <td colspan=\"6\">Total Count</td>",
+									"        <td>{{response.count}}</td>",
+									"    </tr>",
+									"</table>",
+									"`;",
+									"",
+									"function constructVisualizerPayload() {",
+									"    var res = pm.response.json();",
+									"    return {response: res};",
+									"}",
+									"",
+									"pm.visualizer.set(template, constructVisualizerPayload());"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/accounts/settings",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"accounts",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "for_account_id",
+									"value": "299",
+									"disabled": true
+								},
+								{
+									"key": "setting",
+									"value": "account_payment_methods",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Account Payment Methods Settings\n\nThis endpoint retrieves the payment methods settings for a specified account.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/accounts/settings`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| for_account_id | The unique identifier of the account for which the payment methods settings are being requested. | integer | Yes |\n| setting | The specific setting type to retrieve. For this endpoint, it should be set to `account_payment_methods`. | string | Yes |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n**Response Body Example:**\n\n``` json\n{\n    \"account_settings\": [\n        {\n            \"id\": 350,\n            \"account_id\": 259,\n            \"setting\": \"account_payment_methods\",\n            \"value\": \"{\\\"absa-pay\\\": {\\\"enabled\\\": true, \\\"approved\\\": true, \\\"retention_days\\\": 0, \\\"max_transaction_amount\\\": 200000}, ...}\",\n            \"time_created\": \"2025-02-24T10:28:53.812911+02:00\",\n            \"time_modified\": \"2025-05-28T09:03:06.234595+02:00\",\n            \"is_public\": true\n        }\n    ],\n    \"count\": 1\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| account_settings | An array containing the settings related to the account payment methods. | array of objects |\n| id | The unique identifier for the setting. | integer |\n| account_id | The identifier of the account associated with the setting. | integer |\n| setting | The name of the setting. | string |\n| value | The value assigned to the setting (JSON string, see note below). | string |\n| time_created | The timestamp when the setting was created. | string (datetime) |\n| time_modified | The timestamp when the setting was last modified. | string (datetime) |\n| is_public | A boolean indicating if the setting is public. | boolean |\n| count | The total number of settings returned in the response. | integer |\n\n**Note:**\n\n- The `value` field contains a JSON string that describes the available payment methods and their settings (such as `enabled`, `approved`, `retention_days`, and `max_transaction_amount` for each method)."
+					},
+					"response": []
+				},
+				{
+					"name": "Payout fee settings",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDgtMTVUMTU6MzE6NDIuMjE4Njg5ODErMDI6MDAiLCJ1c2VyX2lkIjoiNjIxNyJ9.7KUypLmlayvy7rrLXi6cZ3eczX9wQUQfvqV2LalsbNw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/accounts/settings",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"accounts",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "account_id",
+									"value": "483",
+									"disabled": true
+								},
+								{
+									"key": "setting",
+									"value": "payout_fee_settings",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Account Payout Fee Settings\n\nThis endpoint retrieves the payout fee settings for a specified account.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/accounts/settings`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| account_id | The unique identifier of the account for which the payout fee settings are being requested. | integer | No |\n| setting | The specific setting type to retrieve. For this endpoint, it should be set to `payout_fee_settings`. | string | No |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n**Response Body Example:**\n\n``` json\n{\n    \"account_settings\": [\n        {\n            \"id\": 371,\n            \"account_id\": 259,\n            \"setting\": \"payout_fee_settings\",\n            \"value\": \"{\\\"payout_fee_threshold_amount\\\":20000,\\\"payout_flat_fee\\\":5}\",\n            \"time_created\": \"2025-03-06T08:52:21.551161+02:00\",\n            \"is_public\": false\n        }\n    ],\n    \"count\": 1\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| account_settings | An array containing the settings related to the account payout fees. | array of objects |\n| id | The unique identifier for the setting. | integer |\n| account_id | The identifier of the account associated with the setting. | integer |\n| setting | The name of the setting (in this case, payout_fee_settings). | string |\n| value | The value assigned to the setting (JSON string, see note below). | string |\n| time_created | The timestamp when the setting was created. | string (datetime) |\n| time_modified | The timestamp when the setting was last modified. | string (datetime) |\n| is_public | A boolean indicating if the setting is public. | boolean |\n| count | The total number of settings returned in the response. | integer |\n\n**Note:**\n\n- The `value` field contains a JSON string with the payout fee configuration. For example:\n    \n\n``` json\n{\n  \"payout_fee_threshold_amount\": 20000,\n  \"payout_flat_fee\": 5\n}\n\n ```\n\n- **payout_fee_threshold_amount** is typically an integer (representing the amount in smallest currency unit).\n    \n- **payout_flat_fee** is a integer (flat fee applied per payout)."
+					},
+					"response": []
+				}
+			],
+			"description": "The Account Settings API allows you to query specific configuration settings for your accounts.\n\n- **GET Account payment methods**: Retrieve the available payment methods linked to your account by querying the _account_payment_methods_ setting. This enables you to view the payment methods that are active on yout account.\n    \n- **GET Payout fee settings**: Access detailed information about payout fee configurations by querying the _payout_fee_settings_ setting. This helps you understand the fees applied to payout transactions for your account.\n    \n\nThese endpoints ensure you have full visibility over your account’s payment methods and payout fee structures."
+		},
+		{
+			"name": "Billing",
+			"item": [
+				{
+					"name": "Credit notes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDgtMTVUMTU6MzE6NDIuMjE4Njg5ODErMDI6MDAiLCJ1c2VyX2lkIjoiNjIxNyJ9.7KUypLmlayvy7rrLXi6cZ3eczX9wQUQfvqV2LalsbNw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/billing/credit-notes",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"billing",
+								"credit-notes"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "531",
+									"disabled": true
+								},
+								{
+									"key": "ids",
+									"value": "[136,137]",
+									"disabled": true
+								},
+								{
+									"key": "account_id",
+									"value": "175",
+									"disabled": true
+								},
+								{
+									"key": "pdf",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "csv",
+									"value": "false",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Credit Notes\n\nThis endpoint retrieves credit note data for specified credit note IDs, with options for PDF or CSV export.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/billing/credit-notes`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| id | Filter for a specific credit note ID. (Required when pdf=true is used.) | integer | Conditional (if pdf=true) |\n| ids | A comma-separated list or array of credit note IDs to retrieve. | integer or array | No |\n| account_id | The unique identifier of the account whose credit notes are being requested. | integer | No |\n| pdf | Boolean flag to include a PDF download link for the credit notes. | boolean | No |\n| csv | Boolean flag; if true, sends a CSV to the account email authorized with a Bearer Token. | boolean | No |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n---\n\n#### Response Body (Credit Notes Array)\n\n``` json\n{\n    \"credit_notes\": [\n        {\n            \"id\": 531,\n            \"account_id\": 399,\n            \"credit_note_date\": \"2025-05-31T23:59:57.999999+02:00\",\n            \"sub_total\": 87000,\n            \"vat\": 13050,\n            \"vat_percentage\": 15,\n            \"total_amount\": 100050,\n            \"time_created\": \"2025-06-01T00:03:38.162093+02:00\",\n            \"time_modified\": null,\n            \"metadata\": { /* ... */ },\n            \"credit_note_items\": [ /* ... */ ],\n            \"validated\": \"\"\n        }\n    ],\n    \"count\": 1\n}\n\n ```\n\n---\n\n#### Response Body (Download PDF URL)\n\n``` json\n{\n    \"credit_notes\": null,\n    \"download_url\": {\n        \"url\": \"https://payments-backend-dev-infra-billing.s3.af-south-1.amazonaws.com/pdfs/credit_note_531.pdf?...\",\n        \"filename\": \"pdfs/credit_note_531.pdf\",\n        \"bucket\": \"payments-backend-dev-infra-billing\",\n        \"file_size\": 56137\n    },\n    \"count\": 1\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| credit_notes | An array containing the retrieved credit note objects, or null if downloading PDF. | array of objects |\n| id | The unique identifier for the credit note. | integer |\n| account_id | The account associated with the credit note. | integer |\n| credit_note_date | The date the credit note was issued. | string (datetime) |\n| sub_total | The subtotal amount before VAT/tax. | float |\n| vat | The VAT amount credited. | float |\n| vat_percentage | The VAT percentage rate applied. | float |\n| total_amount | The total amount of the credit note (including VAT, if applicable). | float |\n| time_created | Timestamp when the credit note was created. | string (datetime) |\n| time_modified | Timestamp when the credit note was last modified. | string (datetime) |\n| metadata | Object containing additional information (issuer details, billing info, etc.). | object |\n| credit_note_items | Array of items credited in the credit note. | array of objects |\n| validated | Additional validation status or information. | string |\n| download_url | Object containing download link and metadata if pdf=true. | object |\n| count | The total number of credit notes or downloads returned in the response. | integer |\n\n---\n\n**Note:**\n\n- The `metadata` object includes issuer, account, and billing info, while `credit_note_items` lists each credited item and its details.\n    \n- When requesting a PDF (`pdf=true`), the `download_url` object is returned in place of the credit notes array."
+					},
+					"response": []
+				},
+				{
+					"name": "Invoices",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDctMzFUMDk6MzE6MzAuNTczODY4MDk4KzAyOjAwIiwidXNlcl9pZCI6IjQ1NDAifQ.s769OkOHve6rQF-Xdpo1qvQCgJuW4m8AWHpZO0K5afA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/billing/invoices",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"billing",
+								"invoices"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "108",
+									"disabled": true
+								},
+								{
+									"key": "ids",
+									"value": "[108,202]",
+									"disabled": true
+								},
+								{
+									"key": "account_id",
+									"value": "242",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "paid",
+									"disabled": true
+								},
+								{
+									"key": "pdf",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "csv",
+									"value": "false",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Invoices\n\nThis endpoint retrieves invoice data for specified invoice IDs, with options for PDF/CSV export and filtering by status.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/billing/invoices`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| id | Filter for a specific invoice ID (required if pdf=true is used). | integer | Conditional (if pdf=true) |\n| ids | A comma-separated list or array of invoice IDs to retrieve. | integer or array | No |\n| account_id | The unique identifier of the account whose invoices are being requested. | integer | No |\n| pdf | Boolean flag to include PDF links for the invoices in the response. | boolean | No |\n| status | Filter invoices by their payment status (paid, partially-paid, unpaid). | string | No |\n| csv | Boolean flag. If true, sends a CSV to the account email authorized with a Bearer Token. | boolean | No |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n---\n\n#### Response Body (Invoices Array)\n\n``` json\n{\n    \"invoices\": [\n        {\n            \"id\": 108,\n            \"account_id\": 3,\n            \"invoice_date\": \"2022-10-29T00:00:00+02:00\",\n            \"sub_total\": 0.09,\n            \"vat\": 0,\n            \"vat_percentage\": 15,\n            \"total_amount\": 0.09,\n            \"outstanding_amount\": 0,\n            \"status\": \"paid\",\n            \"time_created\": \"2022-10-29T00:02:45.346762+02:00\",\n            \"time_modified\": \"2022-10-29T00:02:49.811339+02:00\",\n            \"metadata\": { /* ... */ },\n            \"invoice_items\": [ /* ... */ ],\n            \"payment_date\": \"2022-10-29T00:02:49.811341+02:00\",\n            \"validated\": \"\"\n        }\n    ],\n    \"count\": 1\n}\n\n ```\n\n---\n\n#### Response Body (Download PDF URL)\n\n``` json\n{\n    \"invoices\": null,\n    \"download_url\": {\n        \"url\": \"https://payments-backend-dev-infra-billing.s3.af-south-1.amazonaws.com/pdfs/invoice_108.pdf?...\",\n        \"filename\": \"pdfs/invoice_108.pdf\",\n        \"bucket\": \"payments-backend-dev-infra-billing\",\n        \"file_size\": 57925\n    },\n    \"count\": 1\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| invoices | An array containing the retrieved invoice objects, or null if PDF export | array of objects |\n| id | The unique identifier for the invoice. | integer |\n| account_id | The account associated with the invoice. | integer |\n| invoice_date | The date the invoice was issued. | string (datetime) |\n| sub_total | The subtotal amount before VAT/tax. | float |\n| vat | The VAT amount charged. | float |\n| vat_percentage | The VAT percentage rate applied. | float |\n| total_amount | The total amount of the invoice. | float |\n| outstanding_amount | The outstanding (unpaid) amount on the invoice. | float |\n| status | The payment status of the invoice (`paid`, `partially-paid`, `unpaid`). | string |\n| time_created | Timestamp when the invoice was created. | string (datetime) |\n| time_modified | Timestamp when the invoice was last modified. | string (datetime) |\n| metadata | Object containing additional information (issuer details, billing info, etc). | object |\n| invoice_items | Array of items included in the invoice. | array of objects |\n| payment_date | The date and time the invoice was paid. | string (datetime) |\n| validated | Additional validation status or information. | string |\n| download_url | Object containing download link and metadata if pdf=true. | object |\n| count | The total number of invoices returned in the response. | integer |\n\n---\n\n**Note:**\n\n- The `metadata` object contains issuer, account, and billing info, while `invoice_items` lists each billed item and its details.\n    \n- When requesting a PDF (`pdf=true`), the `download_url` object is returned in place of the invoices array."
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjUtMDgtMjBUMTU6NDE6MDQuMzMyNzgzNDIzKzAyOjAwIiwidXNlcl9pZCI6IjUzMCJ9.xx7SG_cX-tUzNNTJJpfqaqKvoptAiGHDGUKF975x_TI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/billing/transactions",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"billing",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "[fee,payment-debit]",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "Fee for reversal-eft",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "2024-06-13 00:00:00",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "2024-06-18 23:59:59",
+									"disabled": true
+								},
+								{
+									"key": "csv",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "order",
+									"value": "DESC",
+									"disabled": true
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"disabled": true
+								},
+								{
+									"key": "order_by",
+									"value": "type",
+									"disabled": true
+								}
+							]
+						},
+						"description": "This endpoint allows you to query and retrieve detailed information about transactions across your accounts. With the ability to apply various filters, you can refine your search to find specific transactions easily. Additionally, you can export the results into a CSV file for further analysis or record-keeping. This endpoint provides a powerful tool for tracking and managing your financial transactions efficiently.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/billing/transactions`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| type | Array of one or combination of statuses: payment-received, payment-received-reversal, payment-debit, payment-credit, fee, fee-reversal, payout, payout-reversal, admin-debit, admin-credit, promotional-credit, promotional-debit, balance-adjustment-credit, balance-adjustment-debit, bad-debt-write-off, bad-debt-write-off-reversal | array of string | No |\n| search | Search for case-insensitive partial matching transactions | string | No |\n| start_date | Start date for the time period (format: YYYY-MM-DD HH:MM:SS) | string (date/time) | No |\n| end_date | End date for the time period (format: YYYY-MM-DD HH:MM:SS) | string (date/time) | No |\n| csv | Use true to export the results into a CSV file. Large files will be emailed. | boolean | No |\n| order | ASC / DESC | string | No |\n| order_by | Order by any field | string | No |\n| offset | The number of records to skip | integer | No |\n| limit | Limit the number of records returned | integer | No |\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n**Response Body Example:**\n\n``` json\n{\n    \"billing_transactions\": [\n        {\n            \"id\": 65473,\n            \"transaction_date\": \"2024-06-18T10:14:43.010441+02:00\",\n            \"type\": \"payment-debit\",\n            \"description\": \"reversal-pay-shap-36625\",\n            \"amount\": -200,\n            \"amount_excl_vat\": 200,\n            \"vat\": 0,\n            \"doc_number\": \"\",\n            \"account_id\": 259,\n            \"account_code\": \"BOB009\",\n            \"created_by\": 246,\n            \"time_created\": \"2024-06-18T10:14:43.00013+02:00\",\n            \"time_modified\": \"2024-06-18T10:14:43.01135+02:00\",\n            \"modified_by\": 246,\n            \"modified_by_user\": {\n                \"id\": 246,\n                \"name\": \"Sthembiso Tshabalala\",\n                \"email\": \"sthembiso@bob.co.za\"\n            },\n            \"invoice_id\": null,\n            \"credit_note_id\": null,\n            \"payment_id\": 0,\n            \"payment_intent_id\": 54363,\n            \"payment_intent\": {\n                \"id\": 54363,\n                \"short_reference\": \"3RLH7\",\n                \"payment_method\": \"pay-shap\",\n                \"custom_payment_id\": \"99999\",\n                \"email\": \"sthembiso@bob.co.za\",\n                \"item_name\": \"performance test\",\n                \"item_description\": \"bobpay_topup_performance\"\n            },\n            \"fee_transaction_id\": null,\n            \"payment_method_id\": null,\n            \"payment_method\": null,\n            \"retained_until\": null\n        }\n        // ... more transaction objects\n    ],\n    \"count\": 4\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| billing_transactions | Array containing the transaction objects matching the query. | array of objects |\n| id | Unique identifier for the transaction. | integer |\n| transaction_date | Date and time of the transaction. | string (datetime) |\n| type | Transaction type (e.g., payment-debit, payment-credit, fee, payout, etc.). | string |\n| description | Description of the transaction. | string |\n| amount | Amount of the transaction (may be negative for debits). | float |\n| amount_excl_vat | Amount excluding VAT. | float |\n| vat | VAT amount. | float |\n| vat_percentage | VAT percentage rate applied. | float |\n| doc_number | Associated document number (e.g., invoice or credit note number). | string |\n| account_id | Account associated with the transaction. | integer |\n| account_code | Code of the account associated with the transaction. | string |\n| created_by | User ID who created the transaction. | integer |\n| time_created | Timestamp when the transaction was created. | string (datetime) |\n| time_modified | Timestamp when the transaction was last modified. | string (datetime) |\n| modified_by | User ID who last modified the transaction. | integer |\n| modified_by_user | User object with details of the last modifier (see below). | object |\n| invoice_id | Associated invoice ID. | integer |\n| credit_note_id | Associated credit note ID. | integer |\n| payment_id | Payment ID associated with this transaction, if applicable. | integer |\n| payment_intent_id | Payment intent ID associated with this transaction, if applicable. | integer |\n| payment_intent | Payment intent object with additional details (see below). | object |\n| fee_transaction_id | Associated fee transaction ID. | integer |\n| payment_method_id | Associated payment method ID. | integer |\n| payment_method | Payment method name. | string |\n| retained_until | If the funds are retained, the date until which they are retained. | string (datetime) |\n\n**modified_by_user object fields:**\n\n| Key | Description | Type |\n| --- | --- | --- |\n| id | User ID | integer |\n| name | User's full name | string |\n| email | User's email | string |\n\n**payment_intent object fields:**\n\n| Key | Description | Type |\n| --- | --- | --- |\n| id | Payment intent ID | integer |\n| short_reference | Short reference code | string |\n| payment_method | Payment method name | string |\n| custom_payment_id | Custom payment reference | string |\n| email | Payer's email | string |\n| item_name | Name of the item | string |\n| item_description | Description of the item | string |"
+					},
+					"response": []
+				},
+				{
+					"name": "Statement",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{PaymentsHost}}/v2/billing/statements",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"v2",
+								"billing",
+								"statements"
+							],
+							"query": [
+								{
+									"key": "pdf",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "id",
+									"value": "335",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "2023-10-01",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "2023-10-31",
+									"disabled": true
+								},
+								{
+									"key": "account_id",
+									"value": "399",
+									"disabled": true
+								}
+							]
+						},
+						"description": "## Get Billing Statement\n\nThis endpoint retrieves an account statement for a specified period, with an option to download as PDF.\n\n---\n\n### Request\n\n**Method:** GET  \n**URL:** `https://api.sandbox.bobpay.co.za/v2/billing/statements`\n\n---\n\n#### Query Parameters\n\n| Key | Description | Type | Required |\n| --- | --- | --- | --- |\n| pdf | Boolean flag to include a PDF download link for the statement. | boolean | No |\n| id | The unique identifier of the statement. (Required if pdf=true is used.) | integer | Conditional (if pdf=true) |\n| start_date | The start date for the statement period (format: YYYY-MM-DD). | string (date) | No |\n| end_date | The end date for the statement period (format: YYYY-MM-DD). | string (date) | No |\n| account_id | The unique identifier of the account whose statement is being requested. | integer | Yes |\n\n**Note:**  \n  \nThe `id` field is required when requesting a PDF (`pdf=true`). If omitted, the endpoint will not return a download URL.\n\n---\n\n### Response\n\n**Status Code:** 200 OK  \n**Content-Type:** application/json\n\n---\n\n#### Response Body (Statement Data)\n\n``` json\n{\n    \"statement\": {\n        \"from_date\": \"2023-10-01T00:00:00Z\",\n        \"to_date\": \"2023-10-31T00:00:00Z\",\n        \"pending\": 0,\n        \"closing_balance\": 0,\n        \"issuer_details\": { /* ... */ },\n        \"account\": { /* ... */ },\n        \"account_billing_info\": { /* ... */ },\n        \"balance_brought_forward\": { /* ... */ },\n        \"transactions\": [ /* ... */ ]\n    }\n}\n\n ```\n\n---\n\n#### Response Body (PDF Download URL)\n\n``` json\n{\n    \"statement\": null,\n    \"download_url\": {\n        \"url\": \"https://payments-backend-dev-infra-billing.s3.af-south-1.amazonaws.com/pdfs/statement_335.pdf?...\",\n        \"filename\": \"pdfs/statement_335.pdf\",\n        \"bucket\": \"payments-backend-dev-infra-billing\",\n        \"file_size\": 45600\n    }\n}\n\n ```\n\n---\n\n### Response Fields\n\n| Key | Description | Type |\n| --- | --- | --- |\n| statement | Object containing the statement data for the specified period. | object |\n| from_date | The start date of the statement period. | string (datetime) |\n| to_date | The end date of the statement period. | string (datetime) |\n| pending | The amount of pending transactions. | float |\n| closing_balance | The closing balance at the end of the period. | float |\n| issuer_details | Object with the issuer's details (name, address, contact info, etc.). | object |\n| account | Object with account details. | object |\n| account_billing_info | Object with account billing details. | object |\n| balance_brought_forward | Object describing the balance carried over into the period. | object |\n| transactions | Array of statement transactions (may be null if no transactions). | array of objects |\n| download_url | Object containing PDF download info if pdf=true is used. | object |\n\n---\n\n**Note:**  \n  \nWhen `pdf=true` is used, the response will contain a `download_url` object instead of statement details."
+					},
+					"response": []
+				}
+			],
+			"description": "The Billing API allows you to retrieve comprehensive billing documents and data related to your account, enabling streamlined financial reconciliation and transparency.\n\n- **GET Invoices:** Retrieve detailed invoice records for your account by specifying invoice IDs, account ID, or filtering by status. This endpoint allows you to access invoice amounts, payment statuses, billing items, and even download invoices as PDF or CSV files for record-keeping.\n    \n- **GET Credit Notes:** Access credit notes issued to your account by querying specific credit note IDs or account IDs. This enables you to review adjustments or refunds made to previous invoices, along with itemized credit details. Downloadable PDF and CSV formats are also supported.\n    \n- **GET Transactions**: Query and retrieve detailed information about transactions across your accounts, with support for various filters to refine your search. You can also export the results into a CSV file for further analysis or record-keeping.\n    \n- **GET Account Statements:** Obtain account statements for a specified date range, providing a complete summary of account balances, transactions, and billing activity. Statements can be downloaded as PDF documents for auditing or financial review.\n    \n\nThese endpoints ensure you have complete visibility and control over all aspects of your account billing, covering issued invoices, adjustments via credit notes, and overall account statement history."
+		},
+		{
+			"name": "Legacy payment link",
+			"item": [
+				{
+					"name": "Validate with Bob Pay",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 12345,\n    \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"short_reference\": \"BP1234\",\n    \"custom_payment_id\": \"ORDER-2024-001\",\n    \"amount\": 1299.99,\n    \"paid_amount\": 1299.99,\n    \"total_paid_amount\": 1299.99,\n    \"status\": \"paid\",\n    \"payment_method\": \"instant-eft\",\n    \"original_requested_payment_method\": \"instant-eft\",\n    \"payment_id\": 67890,\n    \"payment\": {\n        \"id\": 67890,\n        \"payment_method_id\": 3,\n        \"payment_method\": \"instant-eft\",\n        \"amount\": 1299.99,\n        \"status\": \"complete\"\n    },\n    \"item_name\": \"Wireless Bluetooth Headphones\",\n    \"item_description\": \"Premium noise-cancelling wireless headphones - Black\",\n    \"recipient_account_code\": \"ABC123\",\n    \"recipient_account_id\": 100,\n    \"email\": \"customer@example.com\",\n    \"mobile_number\": \"+27821234567\",\n    \"from_bank\": \"FNB\",\n    \"time_created\": \"2024-01-15T10:30:00Z\",\n    \"is_test\": false,\n    \"signature\": \"5d41402abc4b2a76b9719d911017c592\",\n    \"notify_url\": \"https://yourwebsite.co.za/webhook/payment-notification\",\n    \"success_url\": \"https://yourwebsite.co.za/payment/success\",\n    \"pending_url\": \"https://yourwebsite.co.za/payment/pending\",\n    \"cancel_url\": \"https://yourwebsite.co.za/payment/cancelled\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{PaymentsHost}}/payments/intents/validate",
+							"host": [
+								"{{PaymentsHost}}"
+							],
+							"path": [
+								"payments",
+								"intents",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "# Bob Pay API Documentation (Legacy)\n\n## Generating a Payment URL\n\nThis documentation describes the legacy method of generating payment URLs by manually constructing query parameters and signatures. For new integrations, we recommend using the [modern Payment Intent API](api-docs.md) which provides a more streamlined integration experience.\n\nTo direct your customer to the Bob Pay payment screen using the legacy method, you must construct a URL with query parameters and a security signature.\n\n- **Sandbox environment**: `https://sandbox.bobpay.co.za/pay`\n- **Production environment**: `https://my.bobpay.co.za/pay`\n\n### Required Query Parameters\n\nInclude the following query parameters in your payment URL. Replace the example values with your actual data. All parameter values must be URL-encoded.\n\n| Parameter                | Example Value                                          | Required      | Description                                                                                |\n| ------------------------ | ------------------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------ |\n| `recipient_account_code` | `SAN001`                                               | Yes           | Your unique Bob Pay account code.                                                          |\n| `custom_payment_id`      | `478`                                                  | Yes           | Your unique reference/identifier for this payment. This will be returned in notifications. |\n| `email`                  | `customer@bob.co.za`                                   | Conditional\\* | Customer's email address.                                                                  |\n| `mobile_number`          | `+27821234567`                                         | Conditional\\* | Customer's mobile number in international format (e.g., +27821234567).                     |\n| `amount`                 | `499.99`                                               | Yes           | Payment amount in ZAR. Must be greater than zero.                                          |\n| `item_name`              | `Order 1452`                                           | No            | Name of the product or service being purchased.                                            |\n| `item_description`       | `Lego Star Wars`                                       | No            | Detailed description of the product or service.                                            |\n| `notify_url`             | `https://api-my-store.co.za/payment/bobpay`            | Yes           | Webhook URL where payment status notifications will be sent.                               |\n| `success_url`            | `https://my-store.co.za/accounts/payment-confirmation` | Yes           | URL to redirect the customer after a successful payment.                                   |\n| `pending_url`            | `https://my-store.co.za/accounts/payment-confirmation` | Yes           | URL to redirect the customer when the payment is pending.                                  |\n| `cancel_url`             | `https://my-store.co.za/accounts/payment-cancel`       | Yes           | URL to redirect the customer if they cancel the payment.                                   |\n| `signature`              | _(generated using MD5 hash, see below)_                | Yes           | Security signature to validate data integrity. This must be generated as described below.  |\n| `payment_method`         | `instant-eft` _(optional)_                             | No            | Specific payment method to show the customer. Omit to show all available payment methods.  |\n\n\\* **Note:** Either `email` or `mobile_number` must be provided.\n\n### Generating the Signature\n\nThe `signature` parameter is a security measure to validate data integrity and prevent tampering. You must generate this signature using an MD5 hash of your payment parameters combined with your account passphrase.\n\n**Important Notes:**\n\n- The signature must be calculated from parameters in the **exact order** shown below\n- The `payment_method` parameter is **NOT** included in signature generation\n- Your account passphrase is a secret key that can be found in your Bob Pay merchant account settings\n\n#### Signature Generation Steps\n\n1. **Construct the parameter string** by concatenating the following key-value pairs in this exact order, separated by `&`:\n\n   ```text\n   recipient_account_code\n   custom_payment_id\n   email\n   mobile_number\n   amount\n   item_name\n   item_description\n   notify_url\n   success_url\n   pending_url\n   cancel_url\n   ```\n\n2. **URL-encode each value** (spaces should be converted to `+` before encoding)\n\n3. **Append your passphrase** to the string: `&passphrase=your_secret_passphrase`\n\n4. **Calculate the MD5 hash** of the complete string to generate the signature\n\n#### Example Signature Generation\n\nLet's walk through a complete example:\n\n**Step 1:** Construct the parameter string with URL-encoded values:\n\n```text\nrecipient_account_code=SAN001&custom_payment_id=478&email=customer@bob.co.za&mobile_number=&amount=499.99&item_name=Order+1452&item_description=Lego+Star+Wars&notify_url=https://api-sandbox.bobpay.co.za/payment/bobpay&success_url=https://sandbox.bobpayco.za/accounts/payment-confirmation?provider=bobpay&id=478&pending_url=https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478&cancel_url=https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478\n```\n\n**Step 2:** Append the passphrase (example passphrase: `0W5LORYafx`):\n\n```text\nrecipient_account_code=SAN001&custom_payment_id=478&email=customer@bob.co.za&mobile_number=&amount=499.99&item_name=Order+1452&item_description=Lego+Star+Wars&notify_url=https://api-sandbox.bobpay.co.za/payment/bobpay&success_url=https://sandbox.bobpayco.za/accounts/payment-confirmation?provider=bobpay&id=478&pending_url=https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478&cancel_url=https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478&passphrase=0W5LORYafx\n```\n\n**Step 3:** Calculate the MD5 hash of the entire string:\n\nResult: `b57d2e8b09e17c9977a82c5095ff8c8e`\n\n**Step 4:** Append this signature to your payment URL along with all the other parameters before redirecting the customer.\n\n#### Complete Integration Example\n\nBelow is a complete Node.js example demonstrating how to generate a payment URL with a valid signature:\n\n```javascript\nconst crypto = require(\"crypto\");\n\n/**\n * Generates a complete Bob Pay payment URL with signature\n * @param {string} bobPayWebsiteURL - Base URL (e.g., 'https://sandbox.bobpay.co.za')\n * @param {Array} kvPairs - Array of key-value pairs for payment parameters\n * @param {string} passphrase - Your Bob Pay account passphrase\n * @returns {string} Complete payment URL with signature\n */\nfunction generatePayURL(bobPayWebsiteURL, kvPairs, passphrase) {\n  const signature = generateSignature(kvPairs, passphrase);\n  const url = `${bobPayWebsiteURL}/pay?${kvPairs\n    .map((kv) => `${kv.key}=${encodeURIComponent(kv.value.replace(/ /g, \"+\"))}`)\n    .join(\"&\")}&signature=${signature}`;\n  return url;\n}\n\n/**\n * Generates MD5 signature for payment parameters\n * @param {Array} kvPairs - Array of key-value pairs for payment parameters\n * @param {string} passphrase - Your Bob Pay account passphrase\n * @returns {string} MD5 hash signature\n */\nfunction generateSignature(kvPairs, passphrase) {\n  const params = kvPairs\n    .map((kv) => `${kv.key}=${encodeURIComponent(kv.value.replace(/ /g, \"+\"))}`)\n    .join(\"&\");\n  const stringToHash = `${params}&passphrase=${passphrase}`;\n  console.log(\"String to hash:\", stringToHash);\n  return crypto.createHash(\"md5\").update(stringToHash).digest(\"hex\");\n}\n\n// Example usage\nconst kvPairs = [\n  { key: \"recipient_account_code\", value: \"SAN001\" },\n  { key: \"custom_payment_id\", value: \"478\" },\n  { key: \"email\", value: \"customer@bob.co.za\" },\n  { key: \"mobile_number\", value: \"\" },\n  { key: \"amount\", value: \"499.99\" },\n  { key: \"item_name\", value: \"Order 1452\" },\n  { key: \"item_description\", value: \"Lego Star Wars\" },\n  {\n    key: \"notify_url\",\n    value: \"https://api-sandbox.bobpay.co.za/payment/bobpay\",\n  },\n  {\n    key: \"success_url\",\n    value:\n      \"https://sandbox.bobpayco.za/accounts/payment-confirmation?provider=bobpay&id=478\",\n  },\n  {\n    key: \"pending_url\",\n    value:\n      \"https://sandbox.bobpay.co.za/accounts/payment-confirmation?provider=bobpay&id=478\",\n  },\n  {\n    key: \"cancel_url\",\n    value:\n      \"https://sandbox.bobpay.co.za/accounts/payment-cancel?provider=bobpay&id=478\",\n  },\n];\n\nconst bobPayPassphrase = \"0W5LORYafx\"; // Replace with your actual passphrase\nconst bobPayWebsiteURL = \"https://sandbox.bobpay.co.za\";\nconst bobPayURL = generatePayURL(bobPayWebsiteURL, kvPairs, bobPayPassphrase);\n\nconsole.log(\"Payment URL:\", bobPayURL);\n// Redirect your customer to this URL\n```\n\n### Validating Your Signature\n\nTo verify that you've generated the signature correctly before going live, you can use the signature validation endpoint:\n\n**Endpoint:** `POST /payments/intents/signature`\n\n**Base URLs:**\n\n- **Sandbox**: `https://api.sandbox.bobpay.co.za/payments/intents/signature`\n- **Production**: `https://api.bobpay.co.za/payments/intents/signature`\n\n**Request Body:** Send the payment intent parameters including your generated signature\n\n**Example Response:**\n\n```json\n{\n  \"recipient_account_code\": \"SAN001\",\n  \"custom_payment_id\": \"478\",\n  \"notify_url\": \"https://api-sandbox.bobpay.co.za/payment/bobpay\",\n  \"amount\": 499.99,\n  \"signature\": \"1eb8d2109cb744f0b6a63f168a75ac8e\"\n}\n```\n\nIf your signature is valid, the endpoint will return a `200 OK` response. If the signature is invalid, you'll receive a `400 Bad Request` error.\n\n### Payment Methods\n\nBy default, when a customer visits the payment URL, they are presented with all available payment methods enabled for your merchant account. However, you can direct customers to a specific payment method by adding the `payment_method` query parameter to the payment URL.\n\n#### Available Payment Methods\n\n| Value                | Description                                                   |\n| -------------------- | ------------------------------------------------------------- |\n| `account-balance`    | Pay using Bob Pay account balance                             |\n| `statement`          | Upload bank statement for verification                        |\n| `credit-card`        | Credit or debit card payment (Visa, Mastercard, Amex, Diners) |\n| `instant-eft`        | Real-time bank transfer via Instant EFT                       |\n| `manual-eft`         | Upload proof of payment for manual EFT transfer               |\n| `pay-shap`           | PayShap instant payment method                                |\n| `capitec-pay`        | Capitec Pay instant payment method                            |\n| `scan-to-pay`        | Scan to Pay (QR code payment)                                 |\n| `nedbank-direct-eft` | Nedbank Direct EFT instant payment method                     |\n| `absa-pay`           | Absa Pay instant payment method                               |\n\n#### Important Notes\n\n1. **Payment Method Availability:** Not all payment methods may be available for your account. Payment methods are subject to:\n\n   - Global payment method activation status\n   - Merchant account-specific settings\n   - Transaction amount limits per payment method\n   - Account status and permissions\n\n2. **Transaction Limits:** Each payment method has a maximum transaction amount. If the payment amount exceeds the limit for a specified payment method, that method will be shown as inactive.\n\n3. **Fallback Behavior:** If you specify a payment method that is not available or inactive, the customer will see it as disabled with an appropriate message.\n\n4. **Multiple Payment Methods:** To allow customers to choose from all available payment methods, simply omit the `payment_method` parameter from the URL.\n\n## Handling Notifications\n\nWhen a payment is completed, Bob Pay sends a POST notification to the `notify_url` you specified. This webhook notification contains the complete payment details and requires proper security validation.\n\n### Security & Validation Requirements\n\nTo ensure the webhook is legitimate and the payment is valid, you **must** perform the following security checks:\n\n#### 1. Verify Source IP Address\n\nAll webhook requests originate from Bob Pay's static IP addresses. Verify that the request comes from one of these IPs:\n\n- **Sandbox environment:** `13.246.115.225`\n- **Production environment:** `13.246.100.25`\n\n#### 2. Validate the Signature\n\nThe webhook payload includes a `signature` field. Verify this signature using the same MD5 hashing process described in the \"Generating the Signature\" section above. This confirms the data hasn't been tampered with.\n\n#### 3. Verify the Amount\n\nEnsure the `paid_amount` in the webhook matches the expected amount for your order. Note that some payment methods may allow non-exact payments if enabled for your account.\n\n#### 4. Validate with Bob Pay\n\nAfter verifying the signature and amount, confirm the payment's validity with Bob Pay by calling the validation endpoint.\n\n**Endpoint:** `POST /payments/intents/validate`\n\n**Base URLs:**\n\n- **Sandbox**: `https://api.sandbox.bobpay.co.za/payments/intents/validate`\n- **Production**: `https://api.bobpay.co.za/payments/intents/validate`\n\n**Request Body:** Send the complete webhook payload you received\n\n### Responding to Webhooks\n\n**Critical:** You must return a `200 OK` HTTP status code to acknowledge receipt of the webhook. If Bob Pay doesn't receive a 200 OK response, it will retry sending the webhook using an exponential backoff strategy with up to 17 retries over approximately 24 hours.\n\n**Best Practices:**\n\n- Make your webhook endpoint idempotent (able to handle duplicate notifications safely)\n- Use the `uuid` or `custom_payment_id` to prevent processing the same payment multiple times\n- Store webhook receipts in your database to track which notifications you've already processed\n- Return `200 OK` as quickly as possible; perform time-consuming operations asynchronously"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "e66aa20a15c042f8ab181c450deaaff4",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "WebsiteHost",
+			"value": "https://sandbox.bobpay.co.za",
+			"type": "string"
+		},
+		{
+			"key": "PaymentsHost",
+			"value": "https://api.sandbox.bobpay.co.za",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcnlfZGF0ZSI6IjIwMjMtMTEtMjlUMTU6MTI6MzMuNTQyMDc2MzUzKzAyOjAwIiwidXNlcl9pZCI6IjIzOSJ9.5VSHLENq7qxpwGEXqWv1iv2Y4Hsdak5-KvZUHonxiWE",
+			"type": "string"
+		}
+	]
+}

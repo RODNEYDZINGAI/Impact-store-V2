@@ -1,0 +1,32 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="impactGradient" x1="16" y1="12" x2="104" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f4f8f" />
+      <stop offset="1" stop-color="#143768" />
+    </linearGradient>
+    <linearGradient id="impactAccent" x1="20" y1="96" x2="104" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fbbf24" />
+      <stop offset="1" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="108" height="108" rx="28" fill="url(#impactGradient)" />
+  <g filter="url(#shadow)">
+    <path d="M32 32h56v56H32z" fill="none" />
+  </g>
+  <g fill="#ffffff">
+    <rect x="30" y="32" width="8" height="56" rx="4" />
+    <rect x="30" y="32" width="28" height="8" rx="4" />
+    <rect x="30" y="80" width="28" height="8" rx="4" />
+    <rect x="54" y="32" width="8" height="56" rx="4" />
+    <rect x="74" y="32" width="8" height="56" rx="4" />
+    <rect x="54" y="56" width="28" height="8" rx="4" />
+  </g>
+  <path d="M34 86c18 10 44 10 60-10" stroke="url(#impactAccent)" stroke-width="10" stroke-linecap="round" />
+  <circle cx="88" cy="46" r="7" fill="#fbbf24" />
+  <mask id="shineMask" x="12" y="12" width="96" height="96" maskUnits="userSpaceOnUse">
+    <rect x="12" y="12" width="96" height="96" rx="24" fill="#fff" />
+  </mask>
+  <g mask="url(#shineMask)">
+    <path d="M-20 52c36-26 92-32 128-14" stroke="rgba(255,255,255,0.18)" stroke-width="16" />
+  </g>
+</svg>
