@@ -50,7 +50,6 @@ export default function ProfilePage() {
   });
   const [activeTab, setActiveTab] = useState<"orders" | "address" | "affiliate">("orders");
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [joiningAffiliate, setJoiningAffiliate] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -171,11 +170,9 @@ export default function ProfilePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Affiliate Program
-                  {userData?.referralEnabled && (
-                    <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                      Active
-                    </span>
-                  )}
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    Coming Soon
+                  </span>
                 </button>
               </nav>
 
@@ -338,13 +335,18 @@ export default function ProfilePage() {
 
             {activeTab === "affiliate" && (
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Affiliate Program</h1>
-                <p className="mt-2 text-gray-500">Share your code and earn commission on every order.</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-2xl font-bold text-gray-900">Affiliate Program</h1>
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                    Coming Soon
+                  </span>
+                </div>
+                <p className="mt-2 text-gray-500">Affiliate rewards are being prepared and are not open for new sign-ups yet.</p>
 
                 {userData?.referralEnabled && userData?.referralCode ? (
                   <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
                     <div className="rounded-xl bg-gradient-to-r from-gold/10 to-amber/10 p-4">
-                      <p className="text-sm font-medium text-gray-700">Your Referral Code</p>
+                      <p className="text-sm font-medium text-gray-700">Your Program Code</p>
                       <div className="mt-2 flex items-center gap-4">
                         <div className="rounded-lg bg-white px-4 py-2 shadow-sm">
                           <span className="font-mono text-2xl font-bold text-gray-900">
@@ -401,39 +403,23 @@ export default function ProfilePage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h2 className="mt-4 text-lg font-semibold text-gray-900">Join Our Affiliate Program</h2>
+                    <h2 className="mt-4 text-lg font-semibold text-gray-900">Affiliate Program Coming Soon</h2>
                     <p className="mt-2 text-gray-500">
-                      Sign up to get your unique referral code and start earning commission on every order placed using your code.
+                      We are setting up affiliate rewards for Impact Store customers. New sign-ups are paused until the program is ready.
                     </p>
                     <div className="mt-4 rounded-xl bg-emerald-50 p-4 text-left">
-                      <h3 className="font-medium text-emerald-900">Benefits:</h3>
+                      <h3 className="font-medium text-emerald-900">Planned benefits:</h3>
                       <ul className="mt-2 space-y-1 text-sm text-emerald-700">
                         <li>• Earn up to 5% commission on every referral order</li>
-                        <li>• Your referrals get 5% off their purchase</li>
+                        <li>• Customers can use approved coupon codes at checkout</li>
                         <li>• Track your earnings in your profile</li>
                       </ul>
                     </div>
                     <Button
-                      onClick={async () => {
-                        setJoiningAffiliate(true);
-                        try {
-                          const res = await fetch("/api/user/affiliate", { method: "POST" });
-                          if (res.ok) {
-                            const data = await res.json();
-                            setUserData({ ...userData!, referralEnabled: true, referralCode: data.referralCode });
-                            alert("Welcome to the affiliate program! Your referral code has been generated.");
-                          } else {
-                            alert("Failed to join affiliate program. Please try again.");
-                          }
-                        } catch {
-                          alert("Something went wrong. Please try again.");
-                        }
-                        setJoiningAffiliate(false);
-                      }}
-                      disabled={joiningAffiliate}
-                      className="mt-6 bg-gradient-to-r from-royal to-steel text-white"
+                      disabled
+                      className="mt-6 bg-gray-200 text-gray-500"
                     >
-                      {joiningAffiliate ? "Joining..." : "Join Affiliate Program"}
+                      Coming Soon
                     </Button>
                   </div>
                 )}

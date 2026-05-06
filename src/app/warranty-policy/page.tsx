@@ -26,7 +26,9 @@ export default function WarrantyPolicyPage() {
             <section>
               <h2 className="text-xl font-semibold text-obsidian">Warranty Period</h2>
               <ul className="mt-3 list-disc space-y-2 pl-6 leading-relaxed">
-                <li>All listed devices carry a 3-month carry-in warranty from the date of delivery or collection, unless otherwise stated on the invoice</li>
+                <li>Refurbished products carry a 3-month carry-in warranty from the date of delivery or collection, unless otherwise stated on the invoice</li>
+                <li>New products carry the applicable manufacturer warranty, which may be up to 3 years depending on the brand, product type, and manufacturer terms</li>
+                <li>Manufacturer warranty periods and claim processes may vary by product and will be confirmed on the invoice or manufacturer documentation where applicable</li>
                 <li>For standard purchases: warranty commences on the date of delivery</li>
                 <li>For lay-buy purchases: warranty commences on the date of item release after full payment</li>
               </ul>
@@ -57,7 +59,10 @@ export default function WarrantyPolicyPage() {
             <section>
               <h2 className="text-xl font-semibold text-obsidian">How to Claim</h2>
               <p className="mt-3 leading-relaxed">
-                Contact Impact Store via WhatsApp or email within the warranty period before sending or bringing in any device. Do not attempt to repair the device yourself or take it to a third-party repair shop — doing so will void the warranty immediately and no claim will be considered.
+                Contact Impact Store via WhatsApp or email within the warranty period before sending or bringing in any device. For new products covered by a manufacturer warranty, we may direct the claim through the manufacturer or an authorised service centre in line with their warranty process.
+              </p>
+              <p className="mt-3 leading-relaxed">
+                Do not attempt to repair the device yourself or take it to a third-party repair shop — doing so may void the warranty immediately and no claim will be considered.
               </p>
               <p className="mt-3 leading-relaxed">
                 The customer is responsible for courier costs to return the device for assessment. If the fault is confirmed to be covered under warranty, Impact Store will cover the return courier costs.
@@ -67,14 +72,14 @@ export default function WarrantyPolicyPage() {
             <section>
               <h2 className="text-xl font-semibold text-obsidian">Assessment & Resolution</h2>
               <p className="mt-3 leading-relaxed">
-                Impact Store will assess the device within 5–7 business days of receipt. Where the fault is covered, Impact Store will repair or replace the device at its discretion. If the fault is found to be excluded from warranty coverage, the customer will be provided with a repair quotation.
+                Impact Store will assess refurbished products within 5–7 business days of receipt. Where the fault is covered, Impact Store will repair or replace the device at its discretion. For new products, assessment and resolution timelines may depend on the manufacturer or authorised service centre. If the fault is found to be excluded from warranty coverage, the customer will be provided with a repair quotation where available.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-obsidian">Limitation of Liability</h2>
               <p className="mt-3 leading-relaxed">
-                Impact Store does not provide extended or lifetime warranties. Our warranty obligations are strictly limited to repair or replacement of the defective product within the stated warranty period.
+                Impact Store does not provide extended or lifetime warranties unless explicitly stated in writing. Our warranty obligations are strictly limited to repair, replacement, or manufacturer-facilitated resolution of the defective product within the stated warranty period.
               </p>
             </section>
           </div>

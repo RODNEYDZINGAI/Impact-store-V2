@@ -97,7 +97,7 @@ export default function CheckoutPage() {
       if (res.ok && data.valid) {
         setReferralValid(true);
       } else {
-        setReferralError(data.error || "Invalid referral code");
+        setReferralError(data.error || "Invalid coupon code");
         setReferralValid(false);
       }
     } catch {
@@ -148,10 +148,10 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Referral Code Section */}
+            {/* Coupon Code Section */}
             <div className="mt-6 rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900">Referral Code</h2>
-              <p className="text-sm text-gray-500">Have a referral code? Enter it below for 5% off!</p>
+              <h2 className="text-lg font-bold text-gray-900">Coupon Code</h2>
+              <p className="text-sm text-gray-500">Have a coupon code? Enter it below for 5% off!</p>
               
               <div className="mt-4 flex gap-3">
                 <input
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
 
               {referralValid && (
                 <div className="mt-3 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
-                  ✓ Referral code applied! You saved R{discount.toLocaleString()} (5% off)
+                  ✓ Coupon code applied! You saved R{discount.toLocaleString()} (5% off)
                 </div>
               )}
               
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
                 </div>
                 {referralValid && (
                   <div className="flex justify-between text-sm text-emerald-600">
-                    <span>Referral Discount (5%)</span>
+                    <span>Coupon Discount (5%)</span>
                     <span>-R{discount.toLocaleString()}</span>
                   </div>
                 )}

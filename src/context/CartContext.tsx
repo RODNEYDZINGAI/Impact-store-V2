@@ -24,15 +24,19 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    const stored = localStorage.getItem("impact-store-cart");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    const stored = localStorage.getItem("impact-store-cart");
+    setItems(stored ? JSON.parse(stored) : []);
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem("impact-store-cart", JSON.stringify(items));
-  }, [items]);
+  }, [hydrated, items]);
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
