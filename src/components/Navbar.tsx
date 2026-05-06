@@ -3,7 +3,8 @@
 import { Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
-import { useState } from "react";
+import { FormEvent, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const productLinks = [
@@ -23,9 +24,36 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const router = useRouter();
   const { data: session } = useSession();
   const { itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const openSearch = () => {
+    setSearchOpen(true);
+    window.setTimeout(() => searchInputRef.current?.focus(), 0);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearch("");
+  };
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = search.trim();
+    if (!query) {
+      openSearch();
+      return;
+    }
+
+    setSearchOpen(false);
+    setMenuOpen(false);
+    router.push(`/products?search=${encodeURIComponent(query)}`);
+  };
 
   return (
     <div className="sticky inset-x-0 top-0 z-50">
@@ -102,13 +130,40 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/products"
-              className="hidden h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 sm:flex"
-              aria-label="Search products"
-            >
-              <Search className="h-4 w-4" />
-            </Link>
+            <div className="relative hidden sm:block">
+              {searchOpen ? (
+                <form onSubmit={submitSearch} className="flex h-10 items-center rounded-full border border-slate-200 bg-white shadow-sm">
+                  <Search className="ml-3 h-4 w-4 text-slate-400" />
+                  <input
+                    ref={searchInputRef}
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") closeSearch();
+                    }}
+                    placeholder="Search products..."
+                    className="h-full w-56 bg-transparent px-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={closeSearch}
+                    className="mr-1 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-50 hover:text-slate-700"
+                    aria-label="Close search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openSearch}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                  aria-label="Search products"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             <Link
               href="/contact"
               className="hidden rounded-full bg-[#fbbf24] px-5 py-2 text-sm font-semibold text-[#1f2937] transition hover:bg-[#f59e0b] lg:inline-flex"
@@ -140,6 +195,18 @@ export default function Navbar() {
         {menuOpen && (
           <div className="border-t border-slate-200 bg-white px-6 py-4 md:hidden">
             <div className="mx-auto flex max-w-[1440px] flex-col gap-2 text-sm">
+              <form onSubmit={submitSearch} className="mb-2 flex h-11 items-center rounded-full border border-slate-200 bg-white px-3">
+                <Search className="h-4 w-4 text-slate-400" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search products..."
+                  className="h-full flex-1 bg-transparent px-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                />
+                <button type="submit" className="rounded-full bg-[#fbbf24] px-3 py-1.5 text-xs font-semibold text-[#1f2937]">
+                  Search
+                </button>
+              </form>
               {[...navLinks, { href: "/tap", label: "TAP" }, { href: "/mdm", label: "MDM" }, ...productLinks].map((link) => (
                 <Link
                   key={`${link.href}-${link.label}`}
