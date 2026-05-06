@@ -21,6 +21,9 @@ export interface IUser extends Document {
   verificationCodeExpiry?: Date;
   referralCode?: string;
   referralEnabled: boolean;
+  banned: boolean;
+  bannedAt?: Date;
+  banReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +53,9 @@ const UserSchema = new Schema<IUser>(
     verificationCodeExpiry: { type: Date },
     referralCode: { type: String, unique: true, sparse: true },
     referralEnabled: { type: Boolean, default: false },
+    banned: { type: Boolean, default: false },
+    bannedAt: { type: Date },
+    banReason: { type: String },
   },
   { timestamps: true }
 );

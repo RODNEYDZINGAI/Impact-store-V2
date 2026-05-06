@@ -4,12 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Order from "@/models/Order";
-
-// Generate random referral code
-function generateReferralCode(): string {
-  const randomNum = Math.floor(100 + Math.random() * 900); // 3 digits
-  return `MEG${randomNum}`;
-}
+import { generateReferralCode, normalizeReferralCode } from "@/lib/referral";
 
 export async function GET(req: NextRequest) {
   try {
@@ -59,9 +54,8 @@ export async function PUT(req: NextRequest) {
 
     await dbConnect();
     const body = await req.json();
-    console.log("PUT /api/users body:", body);
-    
-    const { userId, referralEnabled } = body;
+
+    const { userId, referralEnabled, banned, banReason } = body;
 
     if (!userId) {
       return NextResponse.json({ error: "User ID required" }, { status: 400 });
@@ -71,11 +65,9 @@ export async function PUT(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    console.log("Current user state:", { 
-      referralEnabled: user.referralEnabled, 
-      referralCode: user.referralCode 
-    });
+    if (user.role === "admin") {
+      return NextResponse.json({ error: "Admin accounts cannot be modified here" }, { status: 400 });
+    }
 
     // Toggle referral status directly on the document
     if (referralEnabled !== undefined) {
@@ -102,21 +94,20 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    console.log("Saving user with:", { 
-      referralEnabled: user.referralEnabled, 
-      referralCode: user.referralCode 
-    });
+    if (banned !== undefined) {
+      user.banned = Boolean(banned);
+      user.bannedAt = banned ? new Date() : undefined;
+      user.banReason = banned ? String(banReason || "").trim() || "Banned by admin" : undefined;
+      if (banned) {
+        user.referralEnabled = false;
+      }
+    }
 
     // Save the document directly
     await user.save();
 
     // Fetch fresh copy to confirm
     const updatedUser = await User.findById(userId).select("-password");
-
-    console.log("Updated user after save:", { 
-      referralEnabled: updatedUser?.referralEnabled, 
-      referralCode: updatedUser?.referralCode 
-    });
 
     return NextResponse.json({
       message: "User updated successfully",
@@ -126,11 +117,57 @@ export async function PUT(req: NextRequest) {
         email: updatedUser?.email,
         referralCode: updatedUser?.referralCode,
         referralEnabled: updatedUser?.referralEnabled,
+        banned: updatedUser?.banned,
+        bannedAt: updatedUser?.bannedAt,
+        banReason: updatedUser?.banReason,
       },
     });
   } catch (error) {
     console.error("Users PUT error:", error);
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await dbConnect();
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("id");
+
+    if (!userId) {
+      return NextResponse.json({ error: "User ID required" }, { status: 400 });
+    }
+    if (userId === session.user.id) {
+      return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    if (user.role === "admin") {
+      return NextResponse.json({ error: "Admin accounts cannot be deleted here" }, { status: 400 });
+    }
+
+    const orderCount = await Order.countDocuments({ user: userId });
+    if (orderCount > 0) {
+      return NextResponse.json(
+        { error: "This customer has orders. Ban the account instead to preserve order history." },
+        { status: 409 }
+      );
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    return NextResponse.json({ message: "User deleted" });
+  } catch (error) {
+    console.error("Users DELETE error:", error);
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
   }
 }
 
@@ -145,7 +182,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await User.findOne({
-      referralCode: referralCode.toUpperCase(),
+      referralCode: normalizeReferralCode(referralCode),
       referralEnabled: true,
     });
 

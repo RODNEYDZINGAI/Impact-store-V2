@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       orderId: order._id.toString(),
       amount: body.total,
       email: session.user.email!,
-      itemName: `Megabyte Order #${order._id.toString().slice(-6).toUpperCase()}`,
+      itemName: `Impact Store Order #${order._id.toString().slice(-6).toUpperCase()}`,
       itemDescription: itemNames,
     });
 

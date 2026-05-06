@@ -21,6 +21,9 @@ interface User {
   createdAt: string;
   referralCode?: string;
   referralEnabled: boolean;
+  banned?: boolean;
+  bannedAt?: string;
+  banReason?: string;
   address?: {
     street: string;
     city: string;
@@ -45,6 +48,7 @@ export default function UserDetailPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingReferral, setUpdatingReferral] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     fetch(`/api/users?id=${params.id}`)
@@ -80,9 +84,43 @@ export default function UserDetailPage() {
 
   const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
 
+  const updateBanStatus = async (banned: boolean) => {
+    const reason = banned ? window.prompt("Reason for banning this user?", user.banReason || "") : "";
+    if (banned && reason === null) return;
+
+    setUpdatingStatus(true);
+    const res = await fetch("/api/users", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user._id, banned, banReason: reason }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setUser({ ...user, ...data.user });
+    } else {
+      alert(data.error || "Failed to update user status");
+    }
+    setUpdatingStatus(false);
+  };
+
+  const deleteUser = async () => {
+    if (!confirm(`Delete ${user.name}? This is only allowed when the customer has no orders.`)) return;
+
+    setUpdatingStatus(true);
+    const res = await fetch(`/api/users?id=${user._id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (res.ok) {
+      router.push("/admin/users");
+    } else {
+      alert(data.error || "Failed to delete user");
+      setUpdatingStatus(false);
+    }
+  };
+
   return (
     <div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
         <Link
           href="/admin/users"
           className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-white/[0.05] hover:text-white"
@@ -90,6 +128,29 @@ export default function UserDetailPage() {
           ← Back
         </Link>
         <h1 className="text-2xl font-bold text-white">Customer Details</h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={updatingStatus}
+            onClick={() => updateBanStatus(!user.banned)}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50 ${
+              user.banned
+                ? "bg-emerald/20 text-emerald hover:bg-emerald/30"
+                : "bg-amber/20 text-amber hover:bg-amber/30"
+            }`}
+          >
+            {user.banned ? "Unban User" : "Ban User"}
+          </button>
+          <button
+            type="button"
+            disabled={updatingStatus}
+            onClick={deleteUser}
+            className="rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/30 disabled:opacity-50"
+          >
+            Delete User
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
@@ -108,15 +169,22 @@ export default function UserDetailPage() {
           <div className="mt-6 space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Status</span>
-              <span
-                className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  user.emailVerified
-                    ? "border-emerald/30 bg-emerald/10 text-emerald"
-                    : "border-amber/30 bg-amber/10 text-amber"
-                }`}
-              >
-                {user.emailVerified ? "Verified" : "Unverified"}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
+                    user.banned
+                      ? "border-red-500/30 bg-red-500/10 text-red-400"
+                      : user.emailVerified
+                        ? "border-emerald/30 bg-emerald/10 text-emerald"
+                        : "border-amber/30 bg-amber/10 text-amber"
+                  }`}
+                >
+                  {user.banned ? "Banned" : user.emailVerified ? "Verified" : "Unverified"}
+                </span>
+                {user.banned && user.banReason && (
+                  <span className="max-w-[180px] text-right text-xs text-gray-500">{user.banReason}</span>
+                )}
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Joined</span>

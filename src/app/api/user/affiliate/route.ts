@@ -3,12 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-
-// Generate random referral code
-function generateReferralCode(): string {
-  const randomNum = Math.floor(100 + Math.random() * 900); // 3 digits
-  return `MEG${randomNum}`;
-}
+import { generateReferralCode } from "@/lib/referral";
 
 // Join affiliate program - generates referral code for the user
 export async function POST() {

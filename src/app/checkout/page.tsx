@@ -163,7 +163,7 @@ export default function CheckoutPage() {
                     setReferralError("");
                   }}
                   disabled={referralValid}
-                  placeholder="MEG123"
+                  placeholder="IMP-K7Q-4NX"
                   className={`flex-1 rounded-xl border px-4 py-2.5 text-sm uppercase focus:outline-none focus:ring-1 ${
                     referralValid
                       ? "border-emerald-300 bg-emerald-50 text-emerald-700"

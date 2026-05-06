@@ -19,6 +19,10 @@ export const authOptions: NextAuthOptions = {
         const user = await User.findOne({ email: credentials.email.toLowerCase() });
         if (!user) return null;
 
+        if (user.banned) {
+          throw new Error("This account has been disabled. Please contact Impact Store support.");
+        }
+
         // Check if email is verified (treat undefined as verified for existing users)
         if (user.emailVerified === false) {
           throw new Error("Please verify your email before signing in. Check your inbox for the verification code.");
