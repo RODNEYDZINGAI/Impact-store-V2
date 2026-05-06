@@ -28,7 +28,7 @@ export default function AdminProductsPage() {
 
   const fetchProducts = useCallback((showLoading = true) => {
     if (showLoading) setLoading(true);
-    fetch("/api/products")
+    fetch("/api/admin/products")
       .then((r) => r.json())
       .then((data) => {
         setProducts(data);
@@ -76,11 +76,11 @@ export default function AdminProductsPage() {
     if (!confirm(`Are you sure you want to delete ${selectedIds.size} product(s)?`)) return;
     setBulkActionLoading(true);
     
-    const promises = Array.from(selectedIds).map((id) =>
-      fetch(`/api/products/${id}`, { method: "DELETE" })
-    );
-    
-    await Promise.all(promises);
+    await fetch("/api/admin/products/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", ids: Array.from(selectedIds) }),
+    });
     setSelectedIds(new Set());
     fetchProducts();
     setBulkActionLoading(false);
@@ -89,15 +89,11 @@ export default function AdminProductsPage() {
   const handleBulkUnpublish = async () => {
     setBulkActionLoading(true);
     
-    const promises = Array.from(selectedIds).map((id) =>
-      fetch(`/api/products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ published: false }),
-      })
-    );
-    
-    await Promise.all(promises);
+    await fetch("/api/admin/products/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "unpublish", ids: Array.from(selectedIds) }),
+    });
     setSelectedIds(new Set());
     fetchProducts();
     setBulkActionLoading(false);
@@ -106,15 +102,11 @@ export default function AdminProductsPage() {
   const handleBulkPublish = async () => {
     setBulkActionLoading(true);
     
-    const promises = Array.from(selectedIds).map((id) =>
-      fetch(`/api/products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ published: true }),
-      })
-    );
-    
-    await Promise.all(promises);
+    await fetch("/api/admin/products/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "publish", ids: Array.from(selectedIds) }),
+    });
     setSelectedIds(new Set());
     fetchProducts();
     setBulkActionLoading(false);
@@ -133,14 +125,23 @@ export default function AdminProductsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-white">Products</h1>
-        <Button
-          asChild
-          className="bg-gradient-to-r from-royal to-steel text-white hover:from-steel hover:to-royal"
-        >
-          <Link href="/admin/products/new">Add Product</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="border-steel/30 bg-transparent text-steel hover:bg-steel/10 hover:text-steel"
+          >
+            <Link href="/admin/products/import">Import Products</Link>
+          </Button>
+          <Button
+            asChild
+            className="bg-gradient-to-r from-royal to-steel text-white hover:from-steel hover:to-royal"
+          >
+            <Link href="/admin/products/new">Add Product</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filter Tabs */}

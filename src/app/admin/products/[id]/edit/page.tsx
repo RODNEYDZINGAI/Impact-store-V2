@@ -26,7 +26,7 @@ export default function EditProductPage() {
   };
 
   useEffect(() => {
-    fetch(`/api/products/${params.id}`).then((r) => r.json()).then((p) => {
+    fetch(`/api/admin/products/${params.id}`).then((r) => r.json()).then((p) => {
       setForm({
         name: p.name, slug: p.slug, sku: p.sku || "", subtitle: p.subtitle || "", description: p.description, price: String(p.price),
         originalPrice: p.originalPrice ? String(p.originalPrice) : "", category: p.category,
@@ -52,7 +52,7 @@ export default function EditProductPage() {
       specs.filter((s) => s.key.trim()).map((s) => [s.key.trim(), s.value.trim()])
     );
     const body = { ...form, subtitle: form.subtitle || undefined, price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined, stock: Number(form.stock), images, specs: specsObject };
-    const res = await fetch(`/api/products/${params.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch(`/api/admin/products/${params.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (res.ok) {
       alert("Product saved successfully!");
     } else {

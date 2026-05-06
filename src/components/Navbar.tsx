@@ -1,9 +1,9 @@
 "use client";
 
 import { Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -28,9 +28,32 @@ export default function Navbar() {
   const { data: session } = useSession();
   const { itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const isAdmin = session?.user.role === "admin";
+
+  useEffect(() => {
+    const closeAccountMenu = (event: MouseEvent) => {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAccountOpen(false);
+    };
+
+    document.addEventListener("mousedown", closeAccountMenu);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", closeAccountMenu);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
 
   const openSearch = () => {
     setSearchOpen(true);
@@ -182,13 +205,61 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <Link
-              href={session ? (session.user.role === "admin" ? "/admin" : "/profile") : "/login"}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
-              aria-label="Account"
-            >
-              <UserRound className="h-4 w-4" />
-            </Link>
+            {session ? (
+              <div ref={accountMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((value) => !value)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                  aria-label="Account menu"
+                  aria-expanded={accountOpen}
+                >
+                  <UserRound className="h-4 w-4" />
+                </button>
+
+                {accountOpen && (
+                  <div className="absolute right-0 top-12 z-20 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                    <div className="border-b border-slate-100 px-4 py-3">
+                      <p className="truncate text-sm font-semibold text-slate-900">{session.user.name || "Account"}</p>
+                      <p className="truncate text-xs text-slate-500">{session.user.email}</p>
+                    </div>
+                    <div className="p-2 text-sm">
+                      <Link
+                        href="/profile"
+                        onClick={() => setAccountOpen(false)}
+                        className="block rounded-xl px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                      >
+                        Profile
+                      </Link>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setAccountOpen(false)}
+                          className="block rounded-xl px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                        >
+                          Admin
+                        </Link>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className="block w-full rounded-xl px-3 py-2 text-left font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                aria-label="Sign in"
+              >
+                <UserRound className="h-4 w-4" />
+              </Link>
+            )}
           </div>
         </nav>
 
@@ -217,13 +288,44 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href={session ? "/profile" : "/login"}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-              >
-                {session ? "Account" : "Sign In"}
-              </Link>
+              {session ? (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                  >
+                    Profile
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                    className="rounded-lg px-3 py-2 text-left font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         )}

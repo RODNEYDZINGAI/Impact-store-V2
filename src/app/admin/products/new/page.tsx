@@ -44,7 +44,7 @@ export default function NewProductPage() {
       price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       stock: Number(form.stock), images, specs: specsObject,
     };
-    const res = await fetch("/api/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch("/api/admin/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (res.ok) router.push("/admin/products");
     else { alert("Failed to create product"); setLoading(false); }
   };

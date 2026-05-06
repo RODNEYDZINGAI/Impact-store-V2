@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 
@@ -14,19 +12,27 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search");
     const featured = searchParams.get("featured");
 
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = {
+      $or: [{ published: true }, { published: { $exists: false } }],
+    };
     if (category) filter.category = category;
     if (condition) filter.condition = condition;
     if (featured === "true") filter.featured = true;
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { brand: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+      filter.$and = [
+        { $or: [{ published: true }, { published: { $exists: false } }] },
+        {
+          $or: [
+            { name: { $regex: search, $options: "i" } },
+            { brand: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+          ],
+        },
       ];
+      delete filter.$or;
     }
 
-    const products = await Product.find(filter).sort({ createdAt: -1 });
+    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
     return NextResponse.json(products);
   } catch (error) {
     console.error("Products GET error:", error);
@@ -34,19 +40,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    await dbConnect();
-    const body = await req.json();
-    const product = await Product.create(body);
-    return NextResponse.json(product, { status: 201 });
-  } catch (error) {
-    console.error("Products POST error:", error);
-    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
-  }
+export async function POST() {
+  return NextResponse.json(
+    { error: "Use /api/admin/products to manage products" },
+    { status: 405 }
+  );
 }
