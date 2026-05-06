@@ -46,7 +46,6 @@ export default function TermsOfServicePage() {
               <ul className="mt-3 list-disc space-y-2 pl-6 leading-relaxed">
                 <li><strong>New</strong> — Factory sealed or unused, original packaging</li>
                 <li><strong>Refurbished</strong> — Professionally tested, reset, and graded. May show minor cosmetic wear</li>
-                <li><strong>Used</strong> — Pre-owned device sold as-is with disclosed condition at time of listing</li>
               </ul>
             </section>
 

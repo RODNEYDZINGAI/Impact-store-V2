@@ -13,7 +13,6 @@ interface Props {
 const conditionStyles: Record<string, string> = {
   New: "bg-[#fbbf24] text-[#1f2937] border-[#fbbf24]",
   Refurbished: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  Used: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export default async function ProductDetailPage({ params }: Props) {

@@ -273,9 +273,7 @@ export default function AdminProductsPage() {
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                       p.condition === "New"
                         ? "border-emerald/30 bg-emerald/10 text-emerald"
-                        : p.condition === "Refurbished"
-                          ? "border-amber/30 bg-amber/10 text-amber"
-                          : "border-gray-500/30 bg-gray-500/10 text-gray-400"
+                        : "border-amber/30 bg-amber/10 text-amber"
                     }`}
                   >
                     {p.condition}

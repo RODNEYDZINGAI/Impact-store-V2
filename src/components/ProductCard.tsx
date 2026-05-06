@@ -20,7 +20,6 @@ interface ProductCardProps {
 const conditionStyles: Record<string, string> = {
   New: "bg-[#fbbf24] text-[#1f2937]",
   Refurbished: "bg-emerald-100 text-emerald-700",
-  Used: "bg-slate-200 text-slate-700",
 };
 
 export default function ProductCard({
@@ -47,7 +46,7 @@ export default function ProductCard({
         )}
         <span
           className={`absolute right-4 top-4 z-10 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest shadow-sm ${
-            conditionStyles[condition] || conditionStyles.Used
+            conditionStyles[condition] || "bg-slate-200 text-slate-700"
           }`}
         >
           {condition}

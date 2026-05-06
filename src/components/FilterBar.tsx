@@ -11,7 +11,7 @@ interface FilterBarProps {
 }
 
 const categories = ["All", "Phones", "Laptops", "Tablets", "Accessories", "IT Hardware", "Security & Access Control"];
-const conditions = ["All", "New", "Refurbished", "Used"];
+const conditions = ["All", "New", "Refurbished"];
 
 export default function FilterBar({ currentCategory, currentCondition, currentSearch }: FilterBarProps) {
   const router = useRouter();

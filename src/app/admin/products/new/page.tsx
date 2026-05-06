@@ -91,7 +91,7 @@ export default function NewProductPage() {
           <div>
             <label className="block text-sm font-medium text-gray-500">Condition</label>
             <select value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value })} className={selectClass}>
-              <option>New</option><option>Refurbished</option><option>Used</option>
+              <option>New</option><option>Refurbished</option>
             </select>
           </div>
           <div>

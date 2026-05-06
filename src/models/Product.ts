@@ -9,7 +9,7 @@ export interface IProduct extends Document {
   price: number;
   originalPrice?: number;
   category: "Phones" | "Tablets" | "Laptops" | "Accessories" | "IT Hardware" | "Security & Access Control";
-  condition: "New" | "Refurbished" | "Used";
+  condition: "New" | "Refurbished";
   brand: string;
   images: string[];
   specs: Map<string, string>;
@@ -37,7 +37,7 @@ const ProductSchema = new Schema<IProduct>(
     condition: {
       type: String,
       required: true,
-      enum: ["New", "Refurbished", "Used"],
+      enum: ["New", "Refurbished"],
     },
     brand: { type: String, required: true },
     images: [{ type: String }],
