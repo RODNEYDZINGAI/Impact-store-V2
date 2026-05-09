@@ -45,6 +45,20 @@ export interface ReferralValidationResult {
   enabled: boolean;
 }
 
+export interface CouponValidationResult {
+  code: string;
+  active?: boolean;
+  isActive?: boolean;
+  discountType: "percentage" | "fixed";
+  value?: number;
+  discountValue?: number;
+  minOrderAmount?: number;
+  minimumOrder?: number;
+  maxUses?: number;
+  usedCount?: number;
+  expiresAt?: Date | string | null;
+}
+
 export interface CheckoutPromotionSettings {
   couponsEnabled?: boolean;
   referralsEnabled?: boolean;
@@ -61,6 +75,9 @@ export interface CheckoutPricingInput {
   resolveReferral: (
     code: string
   ) => Promise<ReferralValidationResult | null>;
+  resolveCoupon?: (
+    code: string
+  ) => Promise<CouponValidationResult | null>;
 }
 
 export interface CheckoutOrderItem {
@@ -79,8 +96,12 @@ export interface CheckoutPricingResult {
   subtotal: number;
   shipping: number;
   discount: number;
+  referralDiscount: number;
+  couponDiscount: number;
   total: number;
   referralCode?: string;
+  referrerId?: string;
+  couponCode?: string;
   itemNames: string;
 }
 
@@ -111,6 +132,12 @@ function normalizeQuantity(value: unknown): number {
   return value;
 }
 
+function isExpired(value: Date | string | null | undefined): boolean {
+  if (!value) return false;
+  const expiresAt = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now();
+}
+
 export async function calculateCheckoutPricing({
   items,
   products,
@@ -120,17 +147,10 @@ export async function calculateCheckoutPricing({
   settings,
   shippingCost = DEFAULT_SHIPPING_COST,
   resolveReferral,
+  resolveCoupon,
 }: CheckoutPricingInput): Promise<CheckoutPricingResult> {
   if (!Array.isArray(items) || items.length === 0) {
     throw new CheckoutPricingError("Cart is empty");
-  }
-
-  if (normalizeCode(couponCode)) {
-    if (settings?.couponsEnabled === false) {
-      throw new CheckoutPricingError("Coupons are currently disabled");
-    }
-
-    throw new CheckoutPricingError("Coupons are not available yet");
   }
 
   const productMap = new Map(
@@ -238,8 +258,10 @@ export async function calculateCheckoutPricing({
     0
   );
 
+  // --- Referral validation ---
   const normalizedReferralCode = normalizeCode(referralCode);
   let validatedReferralCode: string | undefined;
+  let referrerId: string | undefined;
 
   if (normalizedReferralCode) {
     if (settings?.referralsEnabled === false) {
@@ -256,11 +278,73 @@ export async function calculateCheckoutPricing({
     }
 
     validatedReferralCode = referral.code.toUpperCase();
+    referrerId = referral.id;
   }
 
-  const discount = validatedReferralCode
+  const referralDiscount = validatedReferralCode
     ? Math.round(subtotal * REFERRAL_DISCOUNT_RATE)
     : 0;
+
+  // --- Coupon validation ---
+  const normalizedCouponCode = normalizeCode(couponCode);
+  let couponDiscount = 0;
+  let validatedCouponCode: string | undefined;
+
+  if (normalizedCouponCode) {
+    if (settings?.couponsEnabled === false) {
+      throw new CheckoutPricingError("Coupons are currently disabled");
+    }
+
+    if (!resolveCoupon) {
+      throw new CheckoutPricingError("Coupons are not available");
+    }
+
+    const coupon = await resolveCoupon(normalizedCouponCode);
+
+    if (!coupon || (coupon.active ?? coupon.isActive) !== true) {
+      throw new CheckoutPricingError("Invalid coupon code");
+    }
+
+    if (isExpired(coupon.expiresAt)) {
+      throw new CheckoutPricingError("Coupon has expired");
+    }
+
+    if (
+      typeof coupon.maxUses === "number" &&
+      typeof coupon.usedCount === "number" &&
+      coupon.usedCount >= coupon.maxUses
+    ) {
+      throw new CheckoutPricingError("Coupon usage limit reached");
+    }
+
+    const minOrderAmount = coupon.minOrderAmount ?? coupon.minimumOrder ?? 0;
+    if (subtotal < minOrderAmount) {
+      throw new CheckoutPricingError(
+        `Coupon requires a minimum order of R${minOrderAmount}`
+      );
+    }
+
+    const discountableSubtotal = Math.max(0, subtotal - referralDiscount);
+    const couponValue = coupon.value ?? coupon.discountValue;
+    if (typeof couponValue !== "number" || !Number.isFinite(couponValue)) {
+      throw new CheckoutPricingError("Invalid coupon discount");
+    }
+
+    if (coupon.discountType === "percentage") {
+      if (couponValue > 100) {
+        throw new CheckoutPricingError("Invalid coupon discount");
+      }
+      couponDiscount = Math.round((discountableSubtotal * couponValue) / 100);
+    } else {
+      couponDiscount = Math.round(couponValue);
+    }
+
+    // Cap discount at discountable subtotal
+    couponDiscount = Math.min(couponDiscount, discountableSubtotal);
+    validatedCouponCode = coupon.code.toUpperCase();
+  }
+
+  const discount = couponDiscount + referralDiscount;
   const total = subtotal + shippingCost - discount;
 
   if (total <= 0) {
@@ -272,8 +356,12 @@ export async function calculateCheckoutPricing({
     subtotal,
     shipping: shippingCost,
     discount,
+    referralDiscount,
+    couponDiscount,
     total,
     referralCode: validatedReferralCode,
+    referrerId,
+    couponCode: validatedCouponCode,
     itemNames: orderItems.map((item) => item.name).join(", "),
   };
 }

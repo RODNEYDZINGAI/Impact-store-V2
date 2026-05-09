@@ -10,6 +10,11 @@ interface User {
   emailVerified: boolean;
   referralEnabled: boolean;
   referralCode?: string;
+  referralStats?: {
+    usageCount: number;
+    revenue: number;
+    discountIssued: number;
+  };
   createdAt: string;
   address?: {
     city: string;
@@ -52,6 +57,7 @@ export default function AdminUsersPage() {
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Referral</th>
+              <th className="px-4 py-3">Referral Uses</th>
               <th className="px-4 py-3">Location</th>
               <th className="px-4 py-3">Joined</th>
             </tr>
@@ -91,6 +97,9 @@ export default function AdminUsersPage() {
                   ) : (
                     <span className="text-gray-500">—</span>
                   )}
+                </td>
+                <td className="px-4 py-3 text-gray-400">
+                  {user.referralStats?.usageCount ?? 0}
                 </td>
                 <td className="px-4 py-3 text-gray-400">
                   {user.address

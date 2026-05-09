@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
+import Coupon from "@/models/Coupon";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import { verifySignature, validatePayment } from "@/lib/bobpay";
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
 
     const paymentStatus = (statusMap[webhookData.status] || "unpaid") as
       "unpaid" | "paid" | "failed" | "cancelled" | "refunded";
+    const wasPaid = order.paymentStatus === "paid";
 
     // Update order
     order.paymentStatus = paymentStatus;
@@ -96,8 +98,46 @@ export async function POST(req: NextRequest) {
 
     await order.save();
 
+    if (paymentStatus === "paid" && !wasPaid && !order.promotionsRecorded) {
+      const promotionUpdates: Promise<unknown>[] = [];
+
+      if (order.couponCode) {
+        promotionUpdates.push(
+          Coupon.updateOne({ code: order.couponCode }, { $inc: { usedCount: 1 } })
+        );
+      }
+
+      if (order.referrer) {
+        promotionUpdates.push(
+          User.updateOne(
+            { _id: order.referrer },
+            {
+              $inc: {
+                "referralStats.usageCount": 1,
+                "referralStats.revenue": order.total,
+                "referralStats.discountIssued": order.referralDiscount || 0,
+              },
+              $addToSet: { "referralStats.referredOrders": order._id },
+            }
+          )
+        );
+        promotionUpdates.push(
+          User.updateOne(
+            { _id: order.user, referredBy: { $exists: false } },
+            { $set: { referredBy: order.referrer } }
+          )
+        );
+      }
+
+      if (promotionUpdates.length > 0) {
+        await Promise.all(promotionUpdates);
+        order.promotionsRecorded = true;
+        await order.save();
+      }
+    }
+
     // Send order confirmation email when payment is successful
-    if (paymentStatus === "paid") {
+    if (paymentStatus === "paid" && !wasPaid) {
       try {
         const user = await User.findById(order.user);
         if (user) {

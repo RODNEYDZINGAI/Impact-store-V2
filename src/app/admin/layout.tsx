@@ -11,10 +11,11 @@ const adminLinks = [
   { href: "/admin/products", label: "Products" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/quotes", label: "Quotes" },
+  { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/users", label: "Users" },
 ];
 
-const plannedAdminLinks = ["Coupons", "Settings", "Reports"];
+const plannedAdminLinks = ["Settings", "Reports"];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();

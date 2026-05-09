@@ -6,8 +6,8 @@ import User from "@/models/User";
 
 // Generate random referral code
 function generateReferralCode(): string {
-  const randomNum = Math.floor(100 + Math.random() * 900); // 3 digits
-  return `MEG${randomNum}`;
+  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `MEG${random}`;
 }
 
 // Join affiliate program - generates referral code for the user

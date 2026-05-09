@@ -7,6 +7,7 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import StoreSettings from "@/models/StoreSettings";
 import User from "@/models/User";
+import Coupon from "@/models/Coupon";
 import { createPaymentLink } from "@/lib/bobpay";
 import {
   calculateCheckoutPricing,
@@ -58,6 +59,21 @@ export async function POST(req: NextRequest) {
           enabled: user.referralEnabled,
         };
       },
+      resolveCoupon: async (code) => {
+        const coupon = await Coupon.findOne({ code });
+        if (!coupon) return null;
+
+        return {
+          code: coupon.code,
+          discountType: coupon.discountType,
+          value: coupon.value,
+          minOrderAmount: coupon.minOrderAmount,
+          maxUses: coupon.maxUses,
+          usedCount: coupon.usedCount,
+          expiresAt: coupon.expiresAt,
+          active: coupon.active,
+        };
+      },
     });
 
     // Deduct stock using atomic operations
@@ -97,6 +113,7 @@ export async function POST(req: NextRequest) {
       status: "pending",
       paymentStatus: "unpaid",
       referralCode: pricing.referralCode,
+      couponCode: pricing.couponCode,
     });
     await order.save();
 
@@ -119,6 +136,7 @@ export async function POST(req: NextRequest) {
         discount: pricing.discount,
         total: pricing.total,
         referralCode: pricing.referralCode,
+        couponCode: pricing.couponCode,
       },
     });
   } catch (error) {

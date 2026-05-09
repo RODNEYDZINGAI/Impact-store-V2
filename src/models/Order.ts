@@ -32,6 +32,11 @@ export interface IOrder extends Document {
   paymentId: string;
   bobpayUuid: string;
   referralCode?: string;
+  referrer?: Types.ObjectId;
+  referralDiscount: number;
+  couponCode?: string;
+  couponDiscount: number;
+  promotionsRecorded: boolean;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -76,6 +81,11 @@ const OrderSchema = new Schema<IOrder>(
     paymentId: { type: String },
     bobpayUuid: { type: String },
     referralCode: { type: String },
+    referrer: { type: Schema.Types.ObjectId, ref: "User" },
+    referralDiscount: { type: Number, default: 0 },
+    couponCode: { type: String },
+    couponDiscount: { type: Number, default: 0 },
+    promotionsRecorded: { type: Boolean, default: false },
     notes: { type: String },
   },
   { timestamps: true }

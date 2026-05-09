@@ -2,6 +2,39 @@
 
 All Impact Store project changes should be documented here or in linked feature docs under `docs/`.
 
+## 2026-05-09 (phase 5 — coupons and referrals)
+
+### Added (phase 5 — coupons and referrals)
+
+- **Coupon model** (`src/models/Coupon.ts`): Mongoose schema with code (unique, indexed, uppercase), discountType (percentage/fixed), discountValue, minimumOrder, maxUses, usedCount, expiresAt, isActive, timestamps.
+- **Coupon admin API** (`/api/coupons`): GET (list all, admin-only), POST (create with validation — code uniqueness, discountValue bounds, admin-only).
+- **Coupon detail API** (`/api/coupons/[id]`): GET (single coupon), PATCH (update fields), DELETE (soft delete via isActive=false). All admin-only.
+- **Coupon validation API** (`/api/coupons/validate`): POST (public) — accepts `{ code, subtotal }`, validates existence, active status, expiry, usage limits, minimum order. Returns discount details or generic "Invalid coupon code" to prevent enumeration.
+- **Admin coupons page** (`/admin/coupons`): client component listing all coupons in a table (Code, Type, Value, Min Order, Uses, Expires, Active, Actions) with a "Create Coupon" form. Dark theme, rounded borders, steel/royal gradients.
+- **Admin coupon edit page** (`/admin/coupons/[id]`): client component with readonly code, editable discountType, discountValue, minimumOrder, maxUses, expiresAt, isActive toggle, and deactivate button.
+- **Checkout pricing coupon support** (`checkout-pricing.ts`): added `resolveCoupon` callback and `CouponValidationResult` interface. Coupon validation checks active, not expired, under max uses, meets minimum order. Applies percentage or fixed discount, caps at subtotal. Both coupon and referral discounts stack. `couponCode` added to result interface.
+- **Referral tracking**: `User` model now has `referredBy` field (string, default null) to track which user referred this user.
+- **Admin navigation**: Coupons link moved from planned items to active admin sidebar navigation.
+- **Coupon test coverage** in `scripts/verify-pricing.ts`: validates percentage coupon, fixed coupon (with subtotal cap), expired coupon rejection, minimum order not met, coupon+referral stacking, and coupons disabled by settings.
+
+## 2026-05-09 (phase 4 — admin UX upgrade)
+
+### Added
+
+- **Coupon model** with code, percentage/fixed discount type, value, minimum order, maximum uses, expiry date, active state, usage count, and timestamps.
+- **Admin coupon CRUD** at `/admin/coupons` with create, edit, delete, active toggle, expiry, minimum spend, and usage-limit controls.
+- **Coupon APIs** under `/api/coupons` and `/api/coupons/[id]`, restricted to admins.
+- Checkout pricing now validates coupon codes server-side and combines coupon discounts with existing referral discounts.
+- Orders now store coupon code/discount, referral discount, referrer, and a promotion-recorded flag for paid-order reconciliation.
+- BobPay webhook now records coupon usage and referral analytics only when an order transitions to paid.
+- User referral analytics now track usage count, referred revenue, discount issued, and referred order IDs; admin user screens display referral usage metrics.
+
+### Changed
+
+- Referral code generation now uses a larger random code space to reduce collisions.
+- Public referral validation respects the store-level referrals toggle.
+- Checkout includes a coupon code field while preserving server-authoritative payment totals.
+
 ## 2026-05-09 (phase 4 — admin UX upgrade)
 
 ### Added

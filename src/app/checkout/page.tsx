@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const [referralLoading, setReferralLoading] = useState(false);
   const [referralValid, setReferralValid] = useState(false);
   const [referralError, setReferralError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
 
   // Shipping and discount calculation
   const SHIPPING_COST = 99;
@@ -64,6 +65,7 @@ export default function CheckoutPage() {
           shippingAddress: form,
           total: finalTotal,
           referralCode: referralValid ? referralCode : undefined,
+          couponCode: couponCode.trim() || undefined,
           discount: referralValid ? discount : 0,
         }),
       });
@@ -206,6 +208,20 @@ export default function CheckoutPage() {
                 </div>
               )}
             </div>
+
+            <div className="mt-6 rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-lg font-bold text-gray-900">Coupon Code</h2>
+              <p className="text-sm text-gray-500">
+                Coupon discounts are validated securely before payment.
+              </p>
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                placeholder="SAVE10"
+                className="mt-4 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm uppercase text-gray-900 placeholder-gray-400 focus:border-steel focus:outline-none focus:ring-1 focus:ring-steel/30"
+              />
+            </div>
           </div>
 
           <div>
@@ -231,6 +247,12 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-sm text-emerald-600">
                     <span>Referral Discount (5%)</span>
                     <span>-R{discount.toLocaleString()}</span>
+                  </div>
+                )}
+                {couponCode.trim() && (
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Coupon</span>
+                    <span>{couponCode.trim().toUpperCase()}</span>
                   </div>
                 )}
                 <hr className="border-gray-100" />

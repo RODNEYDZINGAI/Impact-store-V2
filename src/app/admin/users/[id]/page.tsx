@@ -21,6 +21,11 @@ interface User {
   createdAt: string;
   referralCode?: string;
   referralEnabled: boolean;
+  referralStats?: {
+    usageCount: number;
+    revenue: number;
+    discountIssued: number;
+  };
   address?: {
     street: string;
     city: string;
@@ -178,6 +183,26 @@ export default function UserDetailPage() {
                 </div>
               );
             })}
+            <div className="border-t border-white/[0.06] pt-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-400">Referral Uses</span>
+                <span className="text-sm text-white">
+                  {user.referralStats?.usageCount ?? 0}
+                </span>
+              </div>
+              <div className="mt-3 flex justify-between">
+                <span className="text-sm text-gray-400">Referral Revenue</span>
+                <span className="text-sm text-white">
+                  R{(user.referralStats?.revenue ?? 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="mt-3 flex justify-between">
+                <span className="text-sm text-gray-400">Discount Issued</span>
+                <span className="text-sm text-white">
+                  R{(user.referralStats?.discountIssued ?? 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -4,11 +4,12 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Order from "@/models/Order";
+import StoreSettings from "@/models/StoreSettings";
 
 // Generate random referral code
 function generateReferralCode(): string {
-  const randomNum = Math.floor(100 + Math.random() * 900); // 3 digits
-  return `MEG${randomNum}`;
+  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `MEG${random}`;
 }
 
 export async function GET(req: NextRequest) {
@@ -123,6 +124,14 @@ export async function POST(req: NextRequest) {
   try {
     await dbConnect();
     const { referralCode } = await req.json();
+    const settings = await StoreSettings.findOne({ key: "default" });
+
+    if (settings?.referralsEnabled === false) {
+      return NextResponse.json(
+        { error: "Referrals are currently disabled" },
+        { status: 400 }
+      );
+    }
 
     if (!referralCode) {
       return NextResponse.json({ error: "Referral code required" }, { status: 400 });

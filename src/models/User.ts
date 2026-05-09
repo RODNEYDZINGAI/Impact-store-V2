@@ -21,6 +21,13 @@ export interface IUser extends Document {
   verificationCodeExpiry?: Date;
   referralCode?: string;
   referralEnabled: boolean;
+  referredBy?: string;
+  referralStats: {
+    usageCount: number;
+    revenue: number;
+    discountIssued: number;
+    referredOrders: mongoose.Types.ObjectId[];
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +57,13 @@ const UserSchema = new Schema<IUser>(
     verificationCodeExpiry: { type: Date },
     referralCode: { type: String, unique: true, sparse: true },
     referralEnabled: { type: Boolean, default: false },
+    referredBy: { type: String, default: null },
+    referralStats: {
+      usageCount: { type: Number, default: 0 },
+      revenue: { type: Number, default: 0 },
+      discountIssued: { type: Number, default: 0 },
+      referredOrders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
+    },
   },
   { timestamps: true }
 );
