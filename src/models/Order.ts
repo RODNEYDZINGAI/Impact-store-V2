@@ -32,6 +32,7 @@ export interface IOrder extends Document {
   paymentId: string;
   bobpayUuid: string;
   referralCode?: string;
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -75,6 +76,7 @@ const OrderSchema = new Schema<IOrder>(
     paymentId: { type: String },
     bobpayUuid: { type: String },
     referralCode: { type: String },
+    notes: { type: String },
   },
   { timestamps: true }
 );

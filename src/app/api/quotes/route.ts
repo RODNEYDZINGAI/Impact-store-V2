@@ -11,7 +11,11 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { products, name, email, phone, company, message } = body;
+    const { name, email, phone, company, message }: {
+      name?: string; email?: string; phone?: string;
+      company?: string; message?: string;
+    } = body;
+    const safeProducts = Array.isArray(body.products) ? body.products : [];
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -19,11 +23,8 @@ export async function POST(req: NextRequest) {
     if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email.trim())) {
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
-    if (!Array.isArray(products) || products.length === 0) {
-      return NextResponse.json({ error: "At least one product is required" }, { status: 400 });
-    }
 
-    for (const p of products) {
+    for (const p of safeProducts) {
       if (!p.product || typeof p.product !== "string") {
         return NextResponse.json({ error: "Invalid product reference" }, { status: 400 });
       }
@@ -41,34 +42,36 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
 
-    const productIds = products.map((p: { product: string }) => p.product);
-    const foundProducts = await Product.find({ _id: { $in: productIds } })
-      .select("_id name")
-      .lean();
+    // Resolve product names for provided product IDs
+    const quoteProducts: { product: string; name: string; quantityMin?: number; quantityMax?: number }[] = [];
+    if (safeProducts.length > 0) {
+      const productIds = safeProducts.map((p: { product: string }) => p.product);
+      const foundProducts = await Product.find({ _id: { $in: productIds } })
+        .select("_id name")
+        .lean();
 
-    const productMap = new Map(
-      foundProducts.map((p) => [p._id.toString(), p.name as string])
-    );
+      const productMap = new Map(
+        foundProducts.map((p) => [p._id.toString(), p.name as string])
+      );
 
-    for (const p of products) {
-      if (!productMap.has(p.product)) {
-        return NextResponse.json(
-          { error: `Product not found: ${p.product}` },
-          { status: 400 }
-        );
+      for (const p of safeProducts) {
+        if (!productMap.has(p.product)) {
+          return NextResponse.json(
+            { error: `Product not found: ${p.product}` },
+            { status: 400 }
+          );
+        }
+      }
+
+      for (const p of safeProducts) {
+        quoteProducts.push({
+          product: p.product,
+          name: productMap.get(p.product)!,
+          quantityMin: p.quantityMin,
+          quantityMax: p.quantityMax,
+        });
       }
     }
-
-    const quoteProducts = products.map((p: {
-      product: string;
-      quantityMin?: number;
-      quantityMax?: number;
-    }) => ({
-      product: p.product,
-      name: productMap.get(p.product)!,
-      quantityMin: p.quantityMin,
-      quantityMax: p.quantityMax,
-    }));
 
     const quote = await QuoteRequest.create({
       products: quoteProducts,
@@ -127,13 +130,20 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url);
     const statusFilter = url.searchParams.get("status");
+    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "20", 10)));
     const query = statusFilter ? { status: statusFilter } : {};
 
-    const quotes = await QuoteRequest.find(query)
-      .sort({ createdAt: -1 })
-      .lean();
+    const [quotes, total] = await Promise.all([
+      QuoteRequest.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      QuoteRequest.countDocuments(query),
+    ]);
 
-    return NextResponse.json(quotes);
+    return NextResponse.json({ quotes, total });
   } catch (error) {
     console.error("[Quotes] GET error:", error);
     return NextResponse.json({ error: "Failed to fetch quotes" }, { status: 500 });

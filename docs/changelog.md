@@ -2,6 +2,23 @@
 
 All Impact Store project changes should be documented here or in linked feature docs under `docs/`.
 
+## 2026-05-09 (phase 4 — admin UX upgrade)
+
+### Added
+
+- **Admin dashboard metrics**: quote request count card added alongside revenue, orders, and customers cards. Recent quote requests section added below recent orders, linking to each quote detail page.
+- **Dashboard API** (`/api/admin/dashboard`): includes `counts.quotes` (total quote requests) and `recentQuotes` (5 most recent, with name, email, company, status, products).
+- **Variant management** on product create (`/admin/products/new`) and product edit (`/admin/products/[id]/edit`) pages: inline add/remove variant rows with fields for title, SKU, price, stock, and condition. Variants are serialized and submitted alongside the product on save.
+- **Orders status filter tabs** (`/admin/orders`): tab bar for All / Pending / Confirmed / Shipped / Delivered with live counts. Each tab filters the displayed order list.
+- **Quick order status update and notes** (`/admin/orders`): per-order status `<select>` plus internal notes editor that PATCH `/api/orders/[id]` inline without a page reload; spinner shown while the request is in-flight.
+- **`PATCH /api/orders/[id]`**: new admin-only route for updating order status and internal order notes. Validates that the supplied status is one of `pending | confirmed | shipped | delivered`.
+- **Order notes**: `Order` model now stores optional internal admin notes for fulfillment and customer follow-up context.
+
+### Changed
+
+- Admin layout now uses a more responsive sidebar/top-scroll navigation and shows planned Coupons, Settings, and Reports modules as disabled items to avoid broken links.
+- Edit product page now includes a Cancel button returning to the product list.
+
 ## 2026-05-09
 
 ### Added (phase 3 — request-a-quote)

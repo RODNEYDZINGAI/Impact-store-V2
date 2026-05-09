@@ -14,6 +14,8 @@ const adminLinks = [
   { href: "/admin/users", label: "Users" },
 ];
 
+const plannedAdminLinks = ["Coupons", "Settings", "Reports"];
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -37,15 +39,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-navy">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr]">
-          <aside className="lg:border-r lg:border-white/[0.06] lg:pr-6">
-            <h2 className="text-lg font-bold text-white">Admin</h2>
-            <nav className="mt-4 flex gap-2 lg:flex-col">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr] lg:gap-8">
+          <aside className="rounded-2xl border border-white/[0.06] bg-navy-light/70 p-4 lg:border-r lg:bg-transparent lg:pr-6">
+            <div className="flex items-center justify-between gap-3 lg:block">
+              <h2 className="text-lg font-bold text-white">Admin</h2>
+              <span className="rounded-full bg-steel/10 px-2.5 py-1 text-xs text-steel lg:mt-2 lg:inline-block">
+                Operations
+              </span>
+            </div>
+            <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
               {adminLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  className={`whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition ${
                     pathname === link.href
                       ? "bg-gradient-to-r from-royal to-steel text-white shadow-lg shadow-royal/20"
                       : "text-gray-500 hover:bg-white/[0.05] hover:text-white"
@@ -53,6 +60,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 >
                   {link.label}
                 </Link>
+              ))}
+              {plannedAdminLinks.map((label) => (
+                <span
+                  key={label}
+                  className="whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium text-gray-700"
+                  title="Planned admin module"
+                >
+                  {label}
+                </span>
               ))}
             </nav>
           </aside>

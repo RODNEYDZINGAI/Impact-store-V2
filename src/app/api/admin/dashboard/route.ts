@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import User from "@/models/User";
+import QuoteRequest from "@/models/QuoteRequest";
 
 export async function GET() {
   try {
@@ -19,6 +20,7 @@ export async function GET() {
     const totalProducts = await Product.countDocuments();
     const totalOrders = await Order.countDocuments();
     const totalUsers = await User.countDocuments({ role: "customer" });
+    const totalQuotes = await QuoteRequest.countDocuments();
 
     // Get revenue stats
     const orders = await Order.find();
@@ -69,11 +71,18 @@ export async function GET() {
       .sort({ stock: 1 })
       .limit(5);
 
+    // Get recent quotes
+    const recentQuotes = await QuoteRequest.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("name email company status createdAt products");
+
     return NextResponse.json({
       counts: {
         products: totalProducts,
         orders: totalOrders,
         users: totalUsers,
+        quotes: totalQuotes,
       },
       revenue: {
         total: totalRevenue,
@@ -88,6 +97,7 @@ export async function GET() {
         delivered: deliveredOrders,
       },
       recentOrders,
+      recentQuotes,
       lowStockProducts,
     });
   } catch (error) {

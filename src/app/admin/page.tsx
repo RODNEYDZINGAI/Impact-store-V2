@@ -8,6 +8,7 @@ interface DashboardData {
     products: number;
     orders: number;
     users: number;
+    quotes: number;
   };
   revenue: {
     total: number;
@@ -28,6 +29,15 @@ interface DashboardData {
     createdAt: string;
     user: { name: string; email: string };
   }[];
+  recentQuotes: {
+    _id: string;
+    name: string;
+    email: string;
+    company?: string;
+    status: string;
+    createdAt: string;
+    products: { name: string }[];
+  }[];
   lowStockProducts: {
     _id: string;
     name: string;
@@ -35,11 +45,20 @@ interface DashboardData {
   }[];
 }
 
-const statusColors: Record<string, string> = {
+const orderStatusColors: Record<string, string> = {
   pending: "bg-amber/10 text-amber",
   confirmed: "bg-blue-500/10 text-blue-400",
   shipped: "bg-violet/10 text-violet",
   delivered: "bg-emerald/10 text-emerald",
+};
+
+const quoteStatusColors: Record<string, string> = {
+  new: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  contacted: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  quoted: "bg-violet-500/20 text-violet-300 border-violet-500/30",
+  won: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  lost: "bg-red-500/20 text-red-400 border-red-500/30",
+  archived: "bg-gray-500/20 text-gray-400 border-gray-500/30",
 };
 
 export default function AdminDashboard() {
@@ -91,25 +110,26 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* This Month Revenue */}
-        <div className="card-shine rounded-2xl bg-gradient-to-br from-royal to-steel p-6 text-white shadow-lg shadow-royal/20">
-          <p className="text-sm text-blue-200">This Month</p>
-          <p className="mt-2 text-3xl font-bold">
-            R{data.revenue.thisMonth.toLocaleString()}
-          </p>
-          <p className="mt-2 text-sm text-blue-200">
-            {new Date().toLocaleDateString("en-ZA", { month: "long", year: "numeric" })}
-          </p>
-        </div>
-
         {/* Total Orders */}
-        <div className="card-shine rounded-2xl bg-gradient-to-br from-violet to-violet-bright p-6 text-white shadow-lg shadow-violet/20">
-          <p className="text-sm text-purple-200">Total Orders</p>
+        <div className="card-shine rounded-2xl bg-gradient-to-br from-royal to-steel p-6 text-white shadow-lg shadow-royal/20">
+          <p className="text-sm text-blue-200">Total Orders</p>
           <p className="mt-2 text-3xl font-bold">{data.counts.orders}</p>
           <div className="mt-2 flex gap-3 text-xs">
-            <span className="text-purple-200">{data.orderStatus.pending} pending</span>
-            <span className="text-purple-200">{data.orderStatus.shipped} shipped</span>
+            <span className="text-blue-200">{data.orderStatus.pending} pending</span>
+            <span className="text-blue-200">{data.orderStatus.shipped} shipped</span>
           </div>
+        </div>
+
+        {/* Quote Requests */}
+        <div className="card-shine rounded-2xl bg-gradient-to-br from-violet to-violet-bright p-6 text-white shadow-lg shadow-violet/20">
+          <p className="text-sm text-purple-200">Quote Requests</p>
+          <p className="mt-2 text-3xl font-bold">{data.counts.quotes}</p>
+          <Link
+            href="/admin/quotes"
+            className="mt-2 inline-block text-xs text-purple-300 hover:text-white"
+          >
+            View all →
+          </Link>
         </div>
 
         {/* Total Customers */}
@@ -120,7 +140,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Products & Order Status */}
+      {/* This Month + Order Status */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* Products Overview */}
         <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
@@ -169,7 +189,15 @@ export default function AdminDashboard() {
 
         {/* Order Status Breakdown */}
         <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
-          <h3 className="font-semibold text-white">Order Status</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white">Order Status</h3>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">This month</p>
+              <p className="text-lg font-bold text-white">
+                R{data.revenue.thisMonth.toLocaleString()}
+              </p>
+            </div>
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-white/[0.02] p-4 text-center">
               <p className="text-2xl font-bold text-amber">{data.orderStatus.pending}</p>
@@ -217,7 +245,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-4">
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                    statusColors[order.status] || "bg-gray-500/10 text-gray-400"
+                    orderStatusColors[order.status] || "bg-gray-500/10 text-gray-400"
                   }`}
                 >
                   {order.status}
@@ -230,6 +258,47 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Recent Quotes */}
+      {data.recentQuotes.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white">Recent Quote Requests</h3>
+            <Link
+              href="/admin/quotes"
+              className="text-sm text-steel hover:text-violet-bright"
+            >
+              View All →
+            </Link>
+          </div>
+          <div className="mt-4 space-y-3">
+            {data.recentQuotes.map((quote) => (
+              <Link
+                key={quote._id}
+                href={`/admin/quotes/${quote._id}`}
+                className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-navy-light px-4 py-3 transition hover:border-steel/30 hover:bg-white/[0.04]"
+              >
+                <div>
+                  <p className="text-sm font-medium text-white">{quote.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {quote.company ? `${quote.company} · ` : ""}
+                    {quote.products.length > 0
+                      ? `${quote.products.length} product${quote.products.length !== 1 ? "s" : ""}`
+                      : "General enquiry"}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${
+                    quoteStatusColors[quote.status] || "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                  }`}
+                >
+                  {quote.status}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

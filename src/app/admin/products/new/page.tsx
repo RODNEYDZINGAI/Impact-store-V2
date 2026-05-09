@@ -5,11 +5,30 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/ImageUpload";
 
+interface VariantDraft {
+  variantId: string;
+  title: string;
+  sku: string;
+  price: string;
+  stock: string;
+  condition: "New" | "Refurbished" | "Used";
+}
+
+const emptyVariant = (): VariantDraft => ({
+  variantId: crypto.randomUUID(),
+  title: "",
+  sku: "",
+  price: "",
+  stock: "",
+  condition: "New",
+});
+
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
+  const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [form, setForm] = useState({
     name: "", slug: "", sku: "", subtitle: "", description: "", price: "", originalPrice: "",
     category: "Laptops", condition: "Refurbished", brand: "", stock: "", featured: false,
@@ -21,6 +40,14 @@ export default function NewProductPage() {
     const newSpecs = [...specs];
     newSpecs[index][field] = value;
     setSpecs(newSpecs);
+  };
+
+  const addVariant = () => setVariants([...variants, emptyVariant()]);
+  const removeVariant = (index: number) => setVariants(variants.filter((_, i) => i !== index));
+  const updateVariant = <K extends keyof VariantDraft>(index: number, field: K, value: VariantDraft[K]) => {
+    const next = [...variants];
+    next[index] = { ...next[index], [field]: value };
+    setVariants(next);
   };
 
   const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -37,12 +64,25 @@ export default function NewProductPage() {
     const specsObject = Object.fromEntries(
       specs.filter((s) => s.key.trim()).map((s) => [s.key.trim(), s.value.trim()])
     );
+    const serializedVariants = variants
+      .filter((v) => v.title.trim())
+      .map((v) => ({
+        variantId: v.variantId,
+        title: v.title.trim(),
+        sku: v.sku.trim() || generateSku(form.category, form.brand),
+        price: Number(v.price),
+        stock: Number(v.stock),
+        condition: v.condition,
+        attributes: {},
+        published: true,
+      }));
     const body = {
       ...form, slug: form.slug || generateSlug(form.name),
       sku: form.sku || generateSku(form.category, form.brand),
       subtitle: form.subtitle || undefined,
       price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       stock: Number(form.stock), images, specs: specsObject,
+      variants: serializedVariants.length > 0 ? serializedVariants : undefined,
     };
     const res = await fetch("/api/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (res.ok) router.push("/admin/products");
@@ -147,6 +187,100 @@ export default function NewProductPage() {
               </button>
             </div>
           </div>
+
+          {/* Variants */}
+          <div className="sm:col-span-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-500">Variants</label>
+              <span className="text-xs text-gray-600">Optional — add if this product has multiple SKUs (e.g. colour, storage)</span>
+            </div>
+            <div className="mt-2 space-y-3">
+              {variants.map((variant, index) => (
+                <div
+                  key={variant.variantId}
+                  className="rounded-xl border border-white/[0.06] bg-navy p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Variant {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(index)}
+                      className="rounded-lg bg-red-500/20 px-2.5 py-1 text-xs text-red-400 hover:bg-red-500/30"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs text-gray-500">Title</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., 128GB Black"
+                        value={variant.title}
+                        onChange={(e) => updateVariant(index, "title", e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500">SKU</label>
+                      <input
+                        type="text"
+                        placeholder="Auto-generated if empty"
+                        value={variant.sku}
+                        onChange={(e) => updateVariant(index, "sku", e.target.value.toUpperCase())}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500">Condition</label>
+                      <select
+                        value={variant.condition}
+                        onChange={(e) => updateVariant(index, "condition", e.target.value as VariantDraft["condition"])}
+                        className={selectClass}
+                      >
+                        <option>New</option>
+                        <option>Refurbished</option>
+                        <option>Used</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500">Price (R)</label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={variant.price}
+                        onChange={(e) => updateVariant(index, "price", e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500">Stock</label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={variant.stock}
+                        onChange={(e) => updateVariant(index, "stock", e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addVariant}
+                className="mt-2 rounded-lg border border-steel/30 px-4 py-2 text-sm text-steel hover:bg-steel/10"
+              >
+                + Add Variant
+              </button>
+            </div>
+          </div>
+
           <div className="sm:col-span-2">
             <ImageUpload
               images={images}
