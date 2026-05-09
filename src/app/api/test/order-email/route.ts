@@ -11,9 +11,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("[Test Order Email] Starting test...");
-    console.log("[Test Order Email] User:", session.user);
-
     // Allow overriding the email for testing
     const body = await req.json().catch(() => ({}));
     const testEmail = body.email || session.user.email;
@@ -39,8 +36,6 @@ export async function POST(req: NextRequest) {
         postalCode: "2000",
       },
     });
-
-    console.log("[Test Order Email] Result:", result);
 
     if (result.success) {
       return NextResponse.json({

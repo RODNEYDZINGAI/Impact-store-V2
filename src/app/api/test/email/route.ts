@@ -11,10 +11,6 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("[Test Email] Starting test email send...");
-    console.log("[Test Email] User:", session.user);
-    console.log("[Test Email] RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
-
     const result = await sendOrderConfirmationEmail({
       to: session.user.email!,
       name: session.user.name!,
@@ -35,8 +31,6 @@ export async function POST() {
         postalCode: "2000",
       },
     });
-
-    console.log("[Test Email] Result:", result);
 
     if (result.success) {
       return NextResponse.json({ 

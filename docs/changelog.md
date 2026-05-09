@@ -4,6 +4,13 @@ All Impact Store project changes should be documented here or in linked feature 
 
 ## 2026-05-09
 
+### Changed
+
+- Added a server-authoritative checkout pricing helper for BobPay order creation.
+- BobPay checkout now recalculates product names, prices, subtotal, referral discount, shipping, and total on the server before creating orders or payment links.
+- Added store-level promo settings defaults so referrals and future coupons can be globally guarded without trusting checkout client state.
+- Added deterministic checkout pricing verification and removed checkout/referral/email debug logs that exposed operational details.
+
 ### Added
 
 - Created `docs/impact-store-roadmap.md` after initial repository analysis.

@@ -59,7 +59,6 @@ export async function PUT(req: NextRequest) {
 
     await dbConnect();
     const body = await req.json();
-    console.log("PUT /api/users body:", body);
     
     const { userId, referralEnabled } = body;
 
@@ -71,11 +70,6 @@ export async function PUT(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    console.log("Current user state:", { 
-      referralEnabled: user.referralEnabled, 
-      referralCode: user.referralCode 
-    });
 
     // Toggle referral status directly on the document
     if (referralEnabled !== undefined) {
@@ -102,21 +96,11 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    console.log("Saving user with:", { 
-      referralEnabled: user.referralEnabled, 
-      referralCode: user.referralCode 
-    });
-
     // Save the document directly
     await user.save();
 
     // Fetch fresh copy to confirm
     const updatedUser = await User.findById(userId).select("-password");
-
-    console.log("Updated user after save:", { 
-      referralEnabled: updatedUser?.referralEnabled, 
-      referralCode: updatedUser?.referralCode 
-    });
 
     return NextResponse.json({
       message: "User updated successfully",

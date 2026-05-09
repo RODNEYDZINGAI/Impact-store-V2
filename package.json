@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "verify:pricing": "jiti scripts/verify-pricing.ts",
     "seed": "npx tsx src/lib/seed.ts"
   },
   "dependencies": {

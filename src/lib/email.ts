@@ -58,10 +58,6 @@ interface EmailOptions {
 }
 
 export async function sendEmail({ to, subject, html, from = FROM_NOREPLY }: EmailOptions) {
-  console.log(`[Email] Sending email from ${from} to ${to}`);
-  console.log(`[Email] Subject: ${subject}`);
-  console.log(`[Email] API Key exists: ${!!process.env.RESEND_API_KEY}`);
-  
   if (!process.env.RESEND_API_KEY) {
     console.warn("[Email] RESEND_API_KEY not set, email not sent");
     return { success: false, error: "RESEND_API_KEY not configured" };
@@ -80,7 +76,6 @@ export async function sendEmail({ to, subject, html, from = FROM_NOREPLY }: Emai
       return { success: false, error };
     }
 
-    console.log("[Email] Sent successfully:", data);
     return { success: true, data };
   } catch (error) {
     console.error("[Email] Send error:", error);

@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Types } from "mongoose";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
+import StoreSettings from "@/models/StoreSettings";
+import User from "@/models/User";
 import { createPaymentLink } from "@/lib/bobpay";
+import {
+  calculateCheckoutPricing,
+  CheckoutPricingError,
+} from "@/lib/checkout-pricing";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,54 +23,54 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
 
-    // Validate stock availability for all items
-    const productIds = body.items.map((i: { product: string }) => i.product);
-    const products = await Product.find({ _id: { $in: productIds } });
+    const items = Array.isArray(body.items) ? body.items : [];
+    const productIds = [...new Set<string>(
+      items
+        .map((item: { product?: unknown }) =>
+          typeof item.product === "string" ? item.product : ""
+        )
+        .filter((productId: string) => Types.ObjectId.isValid(productId))
+        .filter(Boolean)
+    )];
+    const [products, settings] = await Promise.all([
+      Product.find({ _id: { $in: productIds } }),
+      StoreSettings.findOne({ key: "default" }),
+    ]);
 
-    const outOfStock: string[] = [];
-    const insufficientStock: { name: string; available: number; requested: number }[] = [];
+    const pricing = await calculateCheckoutPricing({
+      items,
+      products,
+      currentUserId: session.user.id,
+      referralCode: body.referralCode,
+      couponCode: body.couponCode,
+      settings,
+      resolveReferral: async (code) => {
+        const user = await User.findOne({
+          referralCode: code,
+          referralEnabled: true,
+        }).select("_id referralCode referralEnabled");
 
-    for (const item of body.items) {
-      const product = products.find((p) => p._id.toString() === item.product);
-      if (!product) {
-        outOfStock.push(item.name);
-      } else if (product.stock < item.quantity) {
-        insufficientStock.push({
-          name: product.name,
-          available: product.stock,
-          requested: item.quantity,
-        });
-      }
-    }
+        if (!user) return null;
 
-    if (outOfStock.length > 0) {
-      return NextResponse.json(
-        { error: `Product(s) no longer available: ${outOfStock.join(", ")}` },
-        { status: 400 }
-      );
-    }
-
-    if (insufficientStock.length > 0) {
-      const details = insufficientStock
-        .map((s) => `${s.name} (only ${s.available} left, you requested ${s.requested})`)
-        .join("; ");
-      return NextResponse.json(
-        { error: `Insufficient stock: ${details}` },
-        { status: 400 }
-      );
-    }
+        return {
+          id: user._id.toString(),
+          code: user.referralCode!,
+          enabled: user.referralEnabled,
+        };
+      },
+    });
 
     // Deduct stock using atomic operations
-    for (const item of body.items) {
+    const deductedItems: { product: string; quantity: number }[] = [];
+    for (const item of pricing.orderItems) {
       const result = await Product.findOneAndUpdate(
         { _id: item.product, stock: { $gte: item.quantity } },
         { $inc: { stock: -item.quantity } },
         { new: true }
       );
       if (!result) {
-        // Race condition: stock changed between check and update — rollback previous deductions
-        for (const prevItem of body.items) {
-          if (prevItem.product === item.product) break;
+        // Race condition: stock changed between check and update. Roll back prior deductions.
+        for (const prevItem of deductedItems) {
           await Product.findByIdAndUpdate(prevItem.product, {
             $inc: { stock: prevItem.quantity },
           });
@@ -73,50 +80,55 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
+      deductedItems.push({ product: item.product, quantity: item.quantity });
     }
 
-    // Enrich order items with SKU
-    const orderItems = body.items.map((item: { product: string; name: string; price: number; quantity: number; image: string }) => {
-      const product = products.find((p) => p._id.toString() === item.product);
-      return { ...item, sku: product?.sku };
-    });
-
-    // Calculate subtotal from items
-    const subtotal = body.items.reduce((sum: number, item: { price: number; quantity: number }) =>
-      sum + (item.price * item.quantity), 0
-    );
-
     // Create the order
-    const order = await Order.create({
+    const order = new Order({
       user: session.user.id,
-      items: orderItems,
+      items: pricing.orderItems.map((item) => ({
+        ...item,
+        product: new Types.ObjectId(item.product),
+      })),
       shippingAddress: body.shippingAddress,
-      subtotal,
-      discount: body.discount || 0,
-      total: body.total,
+      subtotal: pricing.subtotal,
+      discount: pricing.discount,
+      total: pricing.total,
       status: "pending",
       paymentStatus: "unpaid",
-      referralCode: body.referralCode,
+      referralCode: pricing.referralCode,
     });
+    await order.save();
 
-    // Create BobPay payment link
-    const itemNames = body.items
-      .map((i: { name: string }) => i.name)
-      .join(", ");
+    const orderId = String(order._id);
 
     const payment = await createPaymentLink({
-      orderId: order._id.toString(),
-      amount: body.total,
+      orderId,
+      amount: pricing.total,
       email: session.user.email!,
-      itemName: `Megabyte Order #${order._id.toString().slice(-6).toUpperCase()}`,
-      itemDescription: itemNames,
+      itemName: `Megabyte Order #${orderId.slice(-6).toUpperCase()}`,
+      itemDescription: pricing.itemNames,
     });
 
     return NextResponse.json({
       orderId: order._id,
       paymentUrl: payment.url,
+      pricing: {
+        subtotal: pricing.subtotal,
+        shipping: pricing.shipping,
+        discount: pricing.discount,
+        total: pricing.total,
+        referralCode: pricing.referralCode,
+      },
     });
   } catch (error) {
+    if (error instanceof CheckoutPricingError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
+
     console.error("Payment creation error:", error);
     return NextResponse.json(
       { error: "Failed to create payment" },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 
 interface Order {
@@ -40,7 +40,6 @@ const statusColors: Record<string, string> = {
 
 export default function UserDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,7 +195,6 @@ export default function UserDetailPage() {
                 onChange={async () => {
                   setUpdatingReferral(true);
                   const newValue = !user.referralEnabled;
-                  console.log("Toggling referral to:", newValue, "for user:", user._id);
                   try {
                     const res = await fetch("/api/users", {
                       method: "PUT",
@@ -206,9 +204,7 @@ export default function UserDetailPage() {
                         referralEnabled: newValue,
                       }),
                     });
-                    console.log("Response status:", res.status);
                     const data = await res.json();
-                    console.log("Response data:", data);
                     if (res.ok) {
                       setUser({ 
                         ...user, 
@@ -216,7 +212,6 @@ export default function UserDetailPage() {
                         referralCode: data.user.referralCode 
                       });
                     } else {
-                      console.error("API error:", data);
                       alert(data.error || "Failed to update referral");
                     }
                   } catch (error) {
