@@ -527,6 +527,190 @@ export async function sendContactAcknowledgmentEmail({
   });
 }
 
+// Quote Request - Notify admin of new quote submission
+export async function sendQuoteRequestEmail({
+  name,
+  email,
+  phone,
+  company,
+  message,
+  products,
+  quoteId,
+}: {
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  message?: string;
+  products: { name: string; quantityMin?: number; quantityMax?: number }[];
+  quoteId: string;
+}) {
+  const adminEmail = CONTACT_EMAIL;
+
+  const productRows = products
+    .map(
+      (p) =>
+        `<tr>
+          <td style="padding:8px 12px;border-bottom:1px solid #eee;">${p.name}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center;">${
+            p.quantityMin || p.quantityMax
+              ? `${p.quantityMin ?? 1}${p.quantityMax ? ` – ${p.quantityMax}` : "+"}`
+              : "—"
+          }</td>
+        </tr>`
+    )
+    .join("");
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Quote Request - Impact Store</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); text-align: center; padding: 40px 20px; }
+          .logo { font-size: 28px; font-weight: 800; color: #ffffff; }
+          .logo span { color: #c9a227; }
+          .content { padding: 40px 30px; }
+          .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 10px; font-weight: 600; }
+          .info-box { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+          .info-row { padding: 6px 0; border-bottom: 1px solid #eee; }
+          .info-row:last-child { border-bottom: none; }
+          .info-label { font-weight: 600; color: #1a1a2e; display: inline-block; min-width: 80px; }
+          .products-table { width: 100%; border-collapse: collapse; }
+          .products-table th { background: #1a1a2e; color: #fff; padding: 8px 12px; text-align: left; font-size: 13px; }
+          .footer { background: #1a1a2e; color: #999; text-align: center; padding: 24px; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">Impact<span>Store</span></div>
+            <p style="color:#c9a227;margin:10px 0 0;font-size:14px;">New Quote Request</p>
+          </div>
+          <div class="content">
+            <div class="section-title">Contact Details</div>
+            <div class="info-box">
+              <div class="info-row"><span class="info-label">Name</span> ${name}</div>
+              <div class="info-row"><span class="info-label">Email</span> <a href="mailto:${email}" style="color:#1f4f8f;">${email}</a></div>
+              ${phone ? `<div class="info-row"><span class="info-label">Phone</span> ${phone}</div>` : ""}
+              ${company ? `<div class="info-row"><span class="info-label">Company</span> ${company}</div>` : ""}
+            </div>
+
+            <div class="section-title">Products of Interest</div>
+            <table class="products-table" style="margin-bottom:24px;">
+              <thead><tr><th>Product</th><th style="text-align:center;">Qty Range</th></tr></thead>
+              <tbody>${productRows}</tbody>
+            </table>
+
+            ${
+              message
+                ? `<div class="section-title">Message</div>
+                   <div class="info-box" style="white-space:pre-wrap;">${message.replace(/\n/g, "<br>")}</div>`
+                : ""
+            }
+
+            <div style="text-align:center;margin-top:24px;">
+              <a href="${APP_URL}/admin/quotes/${quoteId}"
+                 style="display:inline-block;background:linear-gradient(135deg,#1f4f8f 0%,#fbbf24 100%);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">
+                Review in Admin
+              </a>
+            </div>
+          </div>
+          <div class="footer">
+            <p style="margin:0 0 5px;font-size:15px;font-weight:600;color:#fff;">Impact Store</p>
+            <p style="margin:0;">Quote ID: ${quoteId}</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: adminEmail,
+    subject: `New Quote Request from ${name}`,
+    html,
+    from: FROM_NOREPLY,
+  });
+}
+
+// Quote Request - Confirmation email to requester
+export async function sendQuoteAcknowledgmentEmail({
+  to,
+  name,
+  products,
+}: {
+  to: string;
+  name: string;
+  products: { name: string }[];
+}) {
+  const productList = products.map((p) => `<li>${p.name}</li>`).join("");
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quote Request Received - Impact Store</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); text-align: center; padding: 40px 20px; }
+          .logo { font-size: 28px; font-weight: 800; color: #ffffff; }
+          .logo span { color: #c9a227; }
+          .content { padding: 40px 30px; }
+          .success-banner { background: linear-gradient(135deg, #1f4f8f 0%, #fbbf24 100%); color: #fff; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+          .footer { background: #1a1a2e; color: #999; text-align: center; padding: 24px; font-size: 12px; }
+          .footer a { color: #c9a227; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">Impact<span>Store</span></div>
+          </div>
+          <div class="content">
+            <div class="success-banner">
+              <h2 style="margin:0;">Quote Request Received</h2>
+              <p style="margin:10px 0 0;opacity:0.9;">Thank you, ${name}!</p>
+            </div>
+            <p>Hi ${name},</p>
+            <p>We have received your quote request for the following product(s):</p>
+            <ul style="margin:16px 0;padding-left:20px;color:#555;">${productList}</ul>
+            <p>Our team will review your request and get back to you within <strong>1–2 business days</strong> with a tailored quote.</p>
+            <p>If you have any urgent questions in the meantime, contact us at <a href="mailto:${CONTACT_EMAIL}" style="color:#1f4f8f;">${CONTACT_EMAIL}</a>.</p>
+            <p style="margin-top:32px;color:#666;font-size:14px;">
+              Best regards,<br>
+              <strong style="color:#1a1a2e;">The Impact Store Team</strong>
+            </p>
+          </div>
+          <div class="footer">
+            <p style="margin:0 0 5px;font-size:15px;font-weight:600;color:#fff;">Impact Store</p>
+            <p style="margin:0 0 10px;">ICT Hardware and Business Technology</p>
+            <p style="margin:0;"><a href="${APP_URL}">Visit Website</a> | <a href="${APP_URL}/contact">Contact Support</a></p>
+            <p style="margin:12px 0 0;opacity:0.6;">This email was sent to ${to} in response to your quote request.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to,
+    subject: "Quote Request Received - Impact Store",
+    html,
+    from: FROM_NOREPLY,
+  });
+}
+
+// Aliases used by the quotes API route
+export const sendQuoteNotificationEmail = sendQuoteRequestEmail;
+export const sendQuoteConfirmationEmail = sendQuoteAcknowledgmentEmail;
+
 // Order Confirmation Email
 export async function sendOrderConfirmationEmail({
   to,

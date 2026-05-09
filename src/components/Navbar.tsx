@@ -110,7 +110,7 @@ export default function Navbar() {
               <Search className="h-4 w-4" />
             </Link>
             <Link
-              href="/contact"
+              href="/quote"
               className="hidden rounded-full bg-[#fbbf24] px-5 py-2 text-sm font-semibold text-[#1f2937] transition hover:bg-[#f59e0b] lg:inline-flex"
             >
               Request Quote

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 
 interface ProductVariant {
@@ -97,6 +98,13 @@ export default function ProductDetailActions({ product }: { product: ProductForA
       )}
 
       <AddToCartButton product={product} selectedVariant={selectedVariant} />
+
+      <Link
+        href={`/quote?product=${product._id}&productName=${encodeURIComponent(product.name)}`}
+        className="mt-3 flex w-full items-center justify-center rounded-full border border-[#1f4f8f] px-6 py-3 text-sm font-semibold text-[#1f4f8f] transition hover:bg-[#1f4f8f] hover:text-white"
+      >
+        Request Quote
+      </Link>
     </div>
   );
 }

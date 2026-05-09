@@ -96,7 +96,10 @@ export default function CartPage() {
               <Button asChild className="mt-6 w-full bg-gradient-to-r from-royal to-steel text-white hover:from-steel hover:to-royal shadow-lg shadow-royal/25">
                 <Link href="/checkout">Proceed to Checkout</Link>
               </Button>
-              <Link href="/products" className="mt-3 block text-center text-sm text-steel hover:text-violet-bright transition">
+              <Link href="/quote" className="mt-3 block text-center text-sm font-medium text-[#1f4f8f] transition hover:text-[#1a3f73]">
+                Request Bulk Quote
+              </Link>
+              <Link href="/products" className="mt-2 block text-center text-sm text-steel hover:text-violet-bright transition">
                 Continue Shopping
               </Link>
             </div>

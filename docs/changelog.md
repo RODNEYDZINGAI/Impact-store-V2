@@ -4,6 +4,20 @@ All Impact Store project changes should be documented here or in linked feature 
 
 ## 2026-05-09
 
+### Added (phase 3 — request-a-quote)
+
+- **QuoteRequest model** updated: status enum changed to `new/contacted/quoted/won/lost/archived`; added `source`, `variant`, `budget`, `timeline`, `assignedAdmin`, `quotedPrice`, `quotedNotes` fields; `products` array is now optional to support general enquiries.
+- **POST /api/quotes**: accepts general enquiries (empty products array); validates `name`, `email`, `message`; sends admin notification + requester confirmation emails; defaults status to `new`.
+- **GET /api/quotes**: server-side pagination (`page`, `limit`) and `status` filter; populates product references.
+- **GET/PATCH /api/quotes/[id]**: updated valid statuses to new enum; PATCH supports `quotedPrice` and `quotedNotes` in addition to `status` and `adminNotes`.
+- **DELETE /api/quotes/[id]**: soft-archives a quote (sets `status=archived`).
+- `/quote` page: added `budget` and `timeline` fields; products section is optional; `message` is required.
+- Cart page: "Request Bulk Quote" link added to the order summary panel.
+- **Admin `/admin/quotes`**: list page updated to new status tabs (All / New / Contacted / Quoted / Won / Lost) with colour-coded badges; server-side pagination.
+- **Admin `/admin/quotes/[id]`**: detail page updated to new status enum; adds `quotedPrice` and `quotedNotes` inputs; displays budget/timeline/source when present.
+- Admin layout: added Quotes link to the sidebar navigation.
+- `sendQuoteNotificationEmail` and `sendQuoteConfirmationEmail` exported from `src/lib/email.ts` as named aliases.
+
 ### Changed
 
 - Added a server-authoritative checkout pricing helper for BobPay order creation.
@@ -40,3 +54,14 @@ All Impact Store project changes should be documented here or in linked feature 
 - Future implementation changes should include documentation updates in `docs/` before handoff.
 - Admin variant management UI not yet implemented (planned for admin UX phase).
 - Product API routes already accept/preserve variant data via Mongoose schema.
+
+### Added (phase 3 — request-a-quote)
+
+- QuoteRequest Mongoose model: products (with product ref, name, quantity range), contact info (name, email, phone, company), message, status workflow (pending → reviewed → quoted → accepted → declined), admin notes, timestamps.
+- Public quote request page at `/quote` with multi-product form, pre-fill support via query params (`?product=...&productName=...`), and success confirmation.
+- "Request Quote" button on product detail pages (`ProductDetailActions`) linking to `/quote` with pre-filled product.
+- Navbar "Request Quote" button now links to `/quote` instead of `/contact`.
+- API routes: `POST /api/quotes` (public submit with server-side validation), `GET /api/quotes` (admin list), `GET/PATCH /api/quotes/[id]` (admin view/update).
+- Admin quotes dashboard: `/admin/quotes` (filterable list with status tabs), `/admin/quotes/[id]` (detail view with status update, admin notes, reply link).
+- Admin sidebar updated with Quotes link.
+- Email notifications: admin notification + customer acknowledgment on new quote submission via `sendQuoteRequestEmail` and `sendQuoteAcknowledgmentEmail`.
