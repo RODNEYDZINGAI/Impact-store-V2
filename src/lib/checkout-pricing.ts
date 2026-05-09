@@ -14,7 +14,18 @@ export class CheckoutPricingError extends Error {
 export interface CheckoutItemInput {
   product?: unknown;
   quantity?: unknown;
+  variantId?: unknown;
   [key: string]: unknown;
+}
+
+export interface ProductVariantSnapshot {
+  variantId: string;
+  sku?: string;
+  price: number;
+  stock: number;
+  images?: string[];
+  published?: boolean;
+  title?: string;
 }
 
 export interface ProductSnapshot {
@@ -25,6 +36,7 @@ export interface ProductSnapshot {
   stock: number;
   images?: string[];
   published?: boolean;
+  variants?: ProductVariantSnapshot[];
 }
 
 export interface ReferralValidationResult {
@@ -58,6 +70,8 @@ export interface CheckoutOrderItem {
   price: number;
   quantity: number;
   image: string;
+  variantId?: string;
+  variantTitle?: string;
 }
 
 export interface CheckoutPricingResult {
@@ -68,6 +82,12 @@ export interface CheckoutPricingResult {
   total: number;
   referralCode?: string;
   itemNames: string;
+}
+
+interface AggregatedItem {
+  productId: string;
+  variantId: string | undefined;
+  quantity: number;
 }
 
 function stringifyId(value: unknown): string {
@@ -116,7 +136,7 @@ export async function calculateCheckoutPricing({
   const productMap = new Map(
     products.map((product) => [stringifyId(product._id), product])
   );
-  const requested = new Map<string, number>();
+  const requested = new Map<string, AggregatedItem>();
 
   for (const item of items) {
     const productId = stringifyId(item.product);
@@ -124,27 +144,49 @@ export async function calculateCheckoutPricing({
       throw new CheckoutPricingError("Invalid product");
     }
 
+    const variantId =
+      typeof item.variantId === "string" && item.variantId ? item.variantId : undefined;
+    const key = variantId ? `${productId}|${variantId}` : productId;
     const quantity = normalizeQuantity(item.quantity);
-    requested.set(productId, (requested.get(productId) || 0) + quantity);
+    const existing = requested.get(key);
+    requested.set(key, {
+      productId,
+      variantId,
+      quantity: (existing?.quantity ?? 0) + quantity,
+    });
   }
 
   const unavailable: string[] = [];
-  const insufficient: { name: string; available: number; requested: number }[] =
-    [];
+  const insufficient: { name: string; available: number; requested: number }[] = [];
 
-  for (const [productId, quantity] of requested.entries()) {
+  for (const [, { productId, variantId, quantity }] of requested.entries()) {
     const product = productMap.get(productId);
     if (!product || product.published === false) {
       unavailable.push(productId);
       continue;
     }
 
-    if (product.stock < quantity) {
-      insufficient.push({
-        name: product.name,
-        available: product.stock,
-        requested: quantity,
-      });
+    if (variantId) {
+      const variant = product.variants?.find((v) => v.variantId === variantId);
+      if (!variant || variant.published === false) {
+        unavailable.push(`${product.name} (variant unavailable)`);
+        continue;
+      }
+      if (variant.stock < quantity) {
+        insufficient.push({
+          name: `${product.name} — ${variant.title ?? variantId}`,
+          available: variant.stock,
+          requested: quantity,
+        });
+      }
+    } else {
+      if (product.stock < quantity) {
+        insufficient.push({
+          name: product.name,
+          available: product.stock,
+          requested: quantity,
+        });
+      }
     }
   }
 
@@ -164,16 +206,29 @@ export async function calculateCheckoutPricing({
     throw new CheckoutPricingError(`Insufficient stock: ${details}`);
   }
 
-  const orderItems = Array.from(requested.entries()).map(
-    ([productId, quantity]) => {
+  const orderItems: CheckoutOrderItem[] = Array.from(requested.entries()).map(
+    ([, { productId, variantId, quantity }]) => {
       const product = productMap.get(productId)!;
+      if (variantId) {
+        const variant = product.variants!.find((v) => v.variantId === variantId)!;
+        return {
+          product: productId,
+          name: product.name,
+          sku: variant.sku,
+          price: variant.price,
+          quantity,
+          image: variant.images?.[0] ?? product.images?.[0] ?? "",
+          variantId,
+          variantTitle: variant.title,
+        };
+      }
       return {
         product: productId,
         name: product.name,
         sku: product.sku,
         price: product.price,
         quantity,
-        image: product.images?.[0] || "",
+        image: product.images?.[0] ?? "",
       };
     }
   );

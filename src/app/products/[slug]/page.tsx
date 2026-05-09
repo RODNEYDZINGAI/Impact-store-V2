@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
-import AddToCartButton from "@/components/AddToCartButton";
+import ProductDetailActions from "@/components/ProductDetailActions";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCard from "@/components/ProductCard";
 import { Badge } from "@/components/ui/badge";
@@ -19,15 +19,14 @@ const conditionStyles: Record<string, string> = {
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
   await dbConnect();
-  const product = await Product.findOne({ 
-    slug, 
-    $or: [{ published: true }, { published: { $exists: false } }] 
+  const product = await Product.findOne({
+    slug,
+    $or: [{ published: true }, { published: { $exists: false } }]
   }).lean();
 
   if (!product) notFound();
 
   const p = JSON.parse(JSON.stringify(product));
-  const savings = p.originalPrice ? p.originalPrice - p.price : 0;
   const specs: [string, string][] = p.specs ? Object.entries(p.specs) : [];
 
   // Fetch related products from the same category (excluding current product)
@@ -59,21 +58,8 @@ export default async function ProductDetailPage({ params }: Props) {
             <h1 className="mt-3 text-3xl font-semibold tracking-normal text-[#1f2937]">{p.name}</h1>
             {p.subtitle && <p className="mt-3 leading-relaxed text-slate-500">{p.subtitle}</p>}
 
-            <div className="mt-6">
-              <div className="flex items-end gap-3">
-                <span className="text-4xl font-semibold text-[#1f4f8f]">R{p.price.toLocaleString()}</span>
-                {p.originalPrice && <span className="mb-1 text-lg text-slate-400 line-through">R{p.originalPrice.toLocaleString()}</span>}
-              </div>
-              {savings > 0 && <p className="mt-2 text-lg font-semibold text-emerald-700">Save R{savings.toLocaleString()} vs market price</p>}
-            </div>
-
-            <div className="mt-4">
-              <p className={`text-sm font-medium ${p.stock > 0 ? "text-emerald-700" : "text-red-500"}`}>
-                {p.stock > 0 ? `${p.stock} in stock` : "Out of stock"}
-              </p>
-            </div>
-
-            <AddToCartButton product={p} />
+            {/* Price, stock, variant selector, and add-to-cart are all handled client-side */}
+            <ProductDetailActions product={p} />
 
             {specs.length > 0 && (
               <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

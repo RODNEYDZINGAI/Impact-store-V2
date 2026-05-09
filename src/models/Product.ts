@@ -1,5 +1,18 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IProductVariant {
+  variantId: string;
+  sku: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  stock: number;
+  condition?: "New" | "Refurbished" | "Used";
+  attributes: Record<string, string>;
+  images?: string[];
+  published: boolean;
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
@@ -16,9 +29,26 @@ export interface IProduct extends Document {
   stock: number;
   featured: boolean;
   published: boolean;
+  variants?: IProductVariant[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+const ProductVariantSchema = new Schema<IProductVariant>(
+  {
+    variantId: { type: String, required: true },
+    sku: { type: String, required: true },
+    title: { type: String, required: true },
+    price: { type: Number, required: true },
+    originalPrice: { type: Number },
+    stock: { type: Number, required: true, default: 0 },
+    condition: { type: String, enum: ["New", "Refurbished", "Used"] },
+    attributes: { type: Map, of: String, default: {} },
+    images: [{ type: String }],
+    published: { type: Boolean, default: true },
+  },
+  { _id: false }
+);
 
 const ProductSchema = new Schema<IProduct>(
   {
@@ -45,6 +75,7 @@ const ProductSchema = new Schema<IProduct>(
     stock: { type: Number, required: true, default: 0 },
     featured: { type: Boolean, default: false },
     published: { type: Boolean, default: true },
+    variants: [ProductVariantSchema],
   },
   { timestamps: true }
 );

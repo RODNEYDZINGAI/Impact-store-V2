@@ -23,8 +23,20 @@ All Impact Store project changes should be documented here or in linked feature 
   - `docs/features/coupons-referrals.md`
   - `docs/features/admin-upgrade.md`
 
+### Added (phase 2 — product variants)
+
+- Product model now supports an optional `variants` array (`IProductVariant`): variantId, sku, title, price, originalPrice, stock, condition, attributes, images, published. Products without variants continue to work exactly as before.
+- Product detail page shows a variant selector when variants exist, with dynamic price/stock display and a "From R…" label when no variant is selected.
+- New `ProductDetailActions` component handles variant selection UI.
+- Cart now distinguishes variants of the same product using a composite `cartKey` (`productId|variantId`). Backward-compatible migration for existing stored carts.
+- `AddToCartButton` accepts optional `variantId` and `variantTitle`.
+- Checkout pricing helper (`checkout-pricing.ts`) is now variant-aware: resolves variant price/stock when `variantId` is provided, aggregates quantities per variant, validates variant availability.
+- Order model includes optional `variantId`/`variantTitle` on line items.
+- `ProductCard` shows "From R…" pricing when product has multiple published variants.
+
 ### Notes
 
 - Repository is on the `hermes` branch.
 - Future implementation changes should include documentation updates in `docs/` before handoff.
-- This recovery pass is documentation-only and does not implement production app code.
+- Admin variant management UI not yet implemented (planned for admin UX phase).
+- Product API routes already accept/preserve variant data via Mongoose schema.

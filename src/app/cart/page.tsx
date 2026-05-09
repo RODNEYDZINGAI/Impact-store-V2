@@ -39,7 +39,7 @@ export default function CartPage() {
           <div className="lg:col-span-2">
             <div className="divide-y divide-gray-100 rounded-2xl border border-gray-100 bg-white shadow-sm">
               {items.map((item) => (
-                <div key={item._id} className="flex gap-4 p-5">
+                <div key={item.cartKey} className="flex gap-4 p-5">
                   <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-50">
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="h-full w-full object-contain p-2" />
@@ -50,15 +50,18 @@ export default function CartPage() {
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
                       <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                      {item.variantTitle && (
+                        <p className="text-xs font-medium text-[#1f4f8f]">{item.variantTitle}</p>
+                      )}
                       <p className="text-sm text-gray-500">{item.condition}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center rounded-lg border border-gray-200 bg-white">
-                        <button onClick={() => updateQuantity(item._id, item.quantity - 1)} className="px-3 py-1 text-gray-400 hover:text-gray-900">-</button>
+                        <button onClick={() => updateQuantity(item.cartKey, item.quantity - 1)} className="px-3 py-1 text-gray-400 hover:text-gray-900">-</button>
                         <span className="px-3 py-1 text-sm font-medium text-gray-900">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item._id, item.quantity + 1)} className="px-3 py-1 text-gray-400 hover:text-gray-900">+</button>
+                        <button onClick={() => updateQuantity(item.cartKey, item.quantity + 1)} className="px-3 py-1 text-gray-400 hover:text-gray-900">+</button>
                       </div>
-                      <button onClick={() => removeFromCart(item._id)} className="text-sm text-red-500 hover:text-red-600">Remove</button>
+                      <button onClick={() => removeFromCart(item.cartKey)} className="text-sm text-red-500 hover:text-red-600">Remove</button>
                     </div>
                   </div>
                   <div className="text-right">

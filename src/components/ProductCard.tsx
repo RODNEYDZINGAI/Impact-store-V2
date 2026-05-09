@@ -1,8 +1,13 @@
 "use client";
 
-import { FileText, ShoppingCart } from "lucide-react";
+import { FileText, ShoppingCart, Tag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
+
+interface ProductVariant {
+  price: number;
+  published?: boolean;
+}
 
 interface ProductCardProps {
   _id: string;
@@ -15,6 +20,7 @@ interface ProductCardProps {
   brand: string;
   images: string[];
   subtitle?: string;
+  variants?: ProductVariant[];
 }
 
 const conditionStyles: Record<string, string> = {
@@ -33,14 +39,19 @@ export default function ProductCard({
   brand,
   images,
   subtitle,
+  variants,
 }: ProductCardProps) {
   const { addToCart } = useCart();
+
+  const publishedVariants = variants?.filter((v) => v.published !== false) ?? [];
+  const hasVariants = publishedVariants.length > 0;
+  const fromPrice = hasVariants ? Math.min(...publishedVariants.map((v) => v.price)) : null;
   const savings = originalPrice ? originalPrice - price : 0;
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
       <Link href={`/products/${slug}`} className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {savings > 0 && (
+        {!hasVariants && savings > 0 && (
           <span className="absolute left-4 top-4 z-10 rounded-full bg-[#fbbf24] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#1f2937] shadow-sm">
             Save R{savings.toLocaleString()}
           </span>
@@ -72,19 +83,35 @@ export default function ProductCard({
 
         <div className="mt-auto pt-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-semibold text-[#1f4f8f]">R{price.toLocaleString()}</span>
-            {originalPrice && <span className="text-xs text-slate-400 line-through">R{originalPrice.toLocaleString()}</span>}
+            <span className="text-xl font-semibold text-[#1f4f8f]">
+              {hasVariants
+                ? `From R${fromPrice!.toLocaleString()}`
+                : `R${price.toLocaleString()}`}
+            </span>
+            {!hasVariants && originalPrice && (
+              <span className="text-xs text-slate-400 line-through">R{originalPrice.toLocaleString()}</span>
+            )}
           </div>
         </div>
 
         <div className="mt-4 flex gap-2">
-          <button
-            onClick={() => addToCart({ _id, name, price, image: images[0] || "", condition })}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-[#1f4f8f] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#173b6b]"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Add to Cart
-          </button>
+          {hasVariants ? (
+            <Link
+              href={`/products/${slug}`}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-[#1f4f8f] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#173b6b]"
+            >
+              <Tag className="h-4 w-4" />
+              View Options
+            </Link>
+          ) : (
+            <button
+              onClick={() => addToCart({ _id, name, price, image: images[0] || "", condition })}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-[#1f4f8f] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#173b6b]"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Add to Cart
+            </button>
+          )}
           <Link
             href="/contact"
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-200 px-4 py-2 text-xs font-semibold text-[#1f2937] transition hover:bg-slate-50"
