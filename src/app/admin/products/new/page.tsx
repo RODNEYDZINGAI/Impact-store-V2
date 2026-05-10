@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/ImageUpload";
+import { DEFAULT_CATEGORY_TAXONOMY, getLegacyCategoryForSelection, LEGACY_CATEGORY_OPTIONS } from "@/lib/category-taxonomy";
 
 interface VariantDraft {
   variantId: string;
@@ -31,7 +32,7 @@ export default function NewProductPage() {
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [form, setForm] = useState({
     name: "", slug: "", sku: "", subtitle: "", description: "", price: "", originalPrice: "",
-    category: "Laptops", condition: "Refurbished", brand: "", stock: "", featured: false,
+    category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
   });
 
   const addSpec = () => setSpecs([...specs, { key: "", value: "" }]);
@@ -51,6 +52,20 @@ export default function NewProductPage() {
   };
 
   const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const taxonomy = DEFAULT_CATEGORY_TAXONOMY;
+  const selectedCategory = taxonomy.find((item) => item.slug === form.categorySlug) || taxonomy[0];
+  const selectedSubcategories = selectedCategory?.subcategories || [];
+  const syncTaxonomySelection = (categorySlug: string, subcategorySlug?: string) => {
+    const category = taxonomy.find((item) => item.slug === categorySlug) || taxonomy[0];
+    const nextSubcategory = subcategorySlug || category.subcategories[0]?.slug || "";
+    setForm({
+      ...form,
+      categorySlug: category.slug,
+      subcategory: nextSubcategory,
+      category: getLegacyCategoryForSelection(taxonomy, category.slug, nextSubcategory) || category.defaultLegacyCategory,
+    });
+  };
+
   const generateSku = (category: string, brand: string) => {
     const cat = category.substring(0, 3).toUpperCase();
     const br = brand.substring(0, 3).toUpperCase() || "XXX";
@@ -123,10 +138,33 @@ export default function NewProductPage() {
             <input type="text" required value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Category</label>
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={selectClass}>
-              <option>Phones</option><option>Laptops</option><option>Tablets</option><option>Accessories</option><option>IT Hardware</option><option>Security &amp; Access Control</option>
+            <label className="block text-sm font-medium text-gray-500">Main Category</label>
+            <select value={form.categorySlug} onChange={(e) => syncTaxonomySelection(e.target.value)} className={selectClass}>
+              {taxonomy.map((category) => (
+                <option key={category.slug} value={category.slug}>{category.name}</option>
+              ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500">Subcategory</label>
+            <select
+              value={form.subcategory}
+              onChange={(e) => syncTaxonomySelection(form.categorySlug, e.target.value)}
+              className={selectClass}
+            >
+              {selectedSubcategories.map((subcategory) => (
+                <option key={subcategory.slug} value={subcategory.slug}>{subcategory.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-500">Legacy Category</label>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={selectClass}>
+              {LEGACY_CATEGORY_OPTIONS.map((category) => (
+                <option key={category}>{category}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-600">Kept for existing product links, reports, and backward-compatible filters.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">Condition</label>

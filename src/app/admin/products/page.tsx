@@ -10,6 +10,8 @@ interface Product {
   name: string;
   price: number;
   category: string;
+  categorySlug?: string;
+  subcategory?: string;
   condition: string;
   stock: number;
   brand: string;
@@ -267,7 +269,14 @@ export default function AdminProductsPage() {
                   <p className="font-medium text-gray-200">{p.name}</p>
                   <p className="text-xs text-gray-600">{p.brand}</p>
                 </td>
-                <td className="px-4 py-3 text-gray-400">{p.category}</td>
+                <td className="px-4 py-3 text-gray-400">
+                  <p>{p.category}</p>
+                  {(p.categorySlug || p.subcategory) && (
+                    <p className="mt-1 text-xs text-gray-600">
+                      {[p.categorySlug, p.subcategory].filter(Boolean).join(" / ")}
+                    </p>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${

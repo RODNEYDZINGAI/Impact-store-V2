@@ -2,6 +2,20 @@
 
 All Impact Store project changes should be documented here or in linked feature docs under `docs/`.
 
+## 2026-05-09 (phase 6 — category taxonomy and product discovery)
+
+### Added
+
+- Main category taxonomy for Mobile Devices, IT Hardware, and Security and Access Control with practical subcategories documented in `docs/features/category-taxonomy.md`.
+- `/api/category-taxonomy` admin API and `CategoryTaxonomy` model for saving editable category/subcategory settings.
+- `/admin/categories` management screen for adding, removing, and editing categories and subcategories.
+- Optional `categorySlug` and `subcategory` product fields with backward-compatible legacy `category` support.
+
+### Changed
+
+- `/products` now supports categorySlug/subcategory discovery and filtering while preserving existing `?category=` links.
+- Product create/edit screens now capture main category, subcategory, and legacy category values.
+
 ## 2026-05-09 (phase 5 — coupons and referrals)
 
 ### Added (phase 5 — coupons and referrals)

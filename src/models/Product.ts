@@ -21,7 +21,9 @@ export interface IProduct extends Document {
   description: string;
   price: number;
   originalPrice?: number;
-  category: "Phones" | "Tablets" | "Laptops" | "Accessories" | "IT Hardware" | "Security & Access Control";
+  category: string;
+  categorySlug?: string;
+  subcategory?: string;
   condition: "New" | "Refurbished" | "Used";
   brand: string;
   images: string[];
@@ -59,11 +61,9 @@ const ProductSchema = new Schema<IProduct>(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     originalPrice: { type: Number },
-    category: {
-      type: String,
-      required: true,
-      enum: ["Phones", "Tablets", "Laptops", "Accessories", "IT Hardware", "Security & Access Control"],
-    },
+    category: { type: String, required: true, trim: true },
+    categorySlug: { type: String, trim: true, index: true },
+    subcategory: { type: String, trim: true, index: true },
     condition: {
       type: String,
       required: true,
@@ -79,6 +79,8 @@ const ProductSchema = new Schema<IProduct>(
   },
   { timestamps: true }
 );
+
+ProductSchema.index({ category: 1, categorySlug: 1, subcategory: 1 });
 
 const Product: Model<IProduct> =
   mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);

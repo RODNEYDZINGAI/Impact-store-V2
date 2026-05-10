@@ -8,12 +8,12 @@ import Link from "next/link";
 
 const productLinks = [
   { href: "/products", label: "All Products" },
-  { href: "/products?category=Phones", label: "Mobile Phones" },
-  { href: "/products?category=Laptops", label: "Laptops" },
-  { href: "/products?category=Tablets", label: "Tablets" },
-  { href: "/products?category=IT+Hardware", label: "IT Hardware" },
-  { href: "/products?category=Accessories", label: "Accessories" },
-  { href: "/products?category=Security+%26+Access+Control", label: "Security & Access Control" },
+  { href: "/products?categorySlug=mobile-devices", label: "Mobile Devices" },
+  { href: "/products?categorySlug=mobile-devices&subcategory=phones", label: "Phones" },
+  { href: "/products?categorySlug=mobile-devices&subcategory=tablets", label: "Tablets" },
+  { href: "/products?categorySlug=it-hardware", label: "IT Hardware" },
+  { href: "/products?categorySlug=it-hardware&subcategory=laptops-desktops", label: "Laptops & Desktops" },
+  { href: "/products?categorySlug=security-access-control", label: "Security & Access Control" },
 ];
 
 const navLinks = [

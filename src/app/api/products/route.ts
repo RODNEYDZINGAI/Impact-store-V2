@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
+import { buildTaxonomyProductFilter, mergeMongoFilters } from "@/lib/product-filters";
+import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
 import Product from "@/models/Product";
 
 export async function GET(req: NextRequest) {
@@ -10,23 +12,32 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
+    const categorySlug = searchParams.get("categorySlug");
+    const subcategory = searchParams.get("subcategory");
     const condition = searchParams.get("condition");
     const search = searchParams.get("search");
     const featured = searchParams.get("featured");
 
-    const filter: Record<string, unknown> = {};
-    if (category) filter.category = category;
-    if (condition) filter.condition = condition;
-    if (featured === "true") filter.featured = true;
+    const taxonomy = await getCategoryTaxonomy();
+    const filters: Record<string, unknown>[] = [
+      buildTaxonomyProductFilter(taxonomy, { category, categorySlug, subcategory }),
+    ];
+
+    if (condition) filters.push({ condition });
+    if (featured === "true") filters.push({ featured: true });
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { brand: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      filters.push({
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { brand: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
+          { subcategory: { $regex: search, $options: "i" } },
+        ],
+      });
     }
 
-    const products = await Product.find(filter).sort({ createdAt: -1 });
+    const products = await Product.find(mergeMongoFilters(...filters)).sort({ createdAt: -1 });
     return NextResponse.json(products);
   } catch (error) {
     console.error("Products GET error:", error);
