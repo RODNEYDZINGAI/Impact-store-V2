@@ -128,7 +128,7 @@ export default function AdminProductsPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
@@ -136,23 +136,23 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Products</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Products</h1>
         <Button
           asChild
-          className="bg-gradient-to-r from-royal to-steel text-white hover:from-steel hover:to-royal"
+          className="bg-[#1f4f8f] text-white hover:bg-[#1f4f8f]/90"
         >
           <Link href="/admin/products/new">Add Product</Link>
         </Button>
       </div>
 
       {/* Filter Tabs */}
-      <div className="mt-6 flex gap-2 border-b border-white/[0.06]">
+      <div className="mt-6 flex gap-2 border-b border-slate-200">
         <button
           onClick={() => setActiveTab("all")}
           className={`px-4 py-2 text-sm font-medium transition ${
             activeTab === "all"
               ? "border-b-2 border-steel text-steel"
-              : "text-gray-500 hover:text-gray-300"
+              : "text-slate-500 hover:text-slate-600"
           }`}
         >
           All ({products.length})
@@ -161,8 +161,8 @@ export default function AdminProductsPage() {
           onClick={() => setActiveTab("published")}
           className={`px-4 py-2 text-sm font-medium transition ${
             activeTab === "published"
-              ? "border-b-2 border-emerald text-emerald"
-              : "text-gray-500 hover:text-gray-300"
+              ? "border-b-2 border-emerald text-emerald-700"
+              : "text-slate-500 hover:text-slate-600"
           }`}
         >
           Published ({publishedCount})
@@ -172,7 +172,7 @@ export default function AdminProductsPage() {
           className={`px-4 py-2 text-sm font-medium transition ${
             activeTab === "unpublished"
               ? "border-b-2 border-amber text-amber"
-              : "text-gray-500 hover:text-gray-300"
+              : "text-slate-500 hover:text-slate-600"
           }`}
         >
           Unpublished ({unpublishedCount})
@@ -182,7 +182,7 @@ export default function AdminProductsPage() {
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
         <div className="mt-4 flex items-center gap-4 rounded-xl border border-steel/30 bg-steel/10 px-4 py-3">
-          <span className="text-sm text-gray-300">
+          <span className="text-sm text-slate-600">
             {selectedIds.size} selected
           </span>
           <div className="flex gap-2">
@@ -207,13 +207,13 @@ export default function AdminProductsPage() {
             <button
               onClick={handleBulkDelete}
               disabled={bulkActionLoading}
-              className="rounded-lg bg-red-500/20 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/30 disabled:opacity-50"
+              className="rounded-lg bg-red-50 px-3 py-1.5 text-sm text-red-700 hover:bg-red-100 disabled:opacity-50"
             >
               Delete
             </button>
             <button
               onClick={clearSelection}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-gray-400 hover:bg-white/5"
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100"
             >
               Clear
             </button>
@@ -221,9 +221,9 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-white/[0.06]">
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-white/[0.06] bg-navy-light text-xs uppercase text-gray-500">
+          <thead className="border-b border-slate-200 bg-white text-xs uppercase text-slate-500">
             <tr>
               <th className="px-4 py-3">
                 <input
@@ -233,7 +233,7 @@ export default function AdminProductsPage() {
                     selectedIds.size === filteredProducts.length
                   }
                   onChange={toggleAll}
-                  className="rounded border-white/[0.06] bg-navy"
+                  className="rounded border-slate-200 bg-slate-50"
                 />
               </th>
               <th className="px-4 py-3">Product</th>
@@ -244,11 +244,11 @@ export default function AdminProductsPage() {
               <th className="px-4 py-3">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.06]">
+          <tbody className="divide-y divide-slate-200">
             {filteredProducts.map((p) => (
               <tr
                 key={p._id}
-                className="cursor-pointer transition hover:bg-white/[0.04]"
+                className="cursor-pointer transition hover:bg-slate-100"
                 onClick={(e) => {
                   const target = e.target as HTMLElement;
                   if (target.tagName !== "INPUT") {
@@ -261,18 +261,18 @@ export default function AdminProductsPage() {
                     type="checkbox"
                     checked={selectedIds.has(p._id)}
                     onChange={() => toggleSelection(p._id)}
-                    className="rounded border-white/[0.06] bg-navy"
+                    className="rounded border-slate-200 bg-slate-50"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-gray-200">{p.name}</p>
-                  <p className="text-xs text-gray-600">{p.brand}</p>
+                  <p className="font-medium text-slate-700">{p.name}</p>
+                  <p className="text-xs text-slate-500">{p.brand}</p>
                 </td>
-                <td className="px-4 py-3 text-gray-400">
+                <td className="px-4 py-3 text-slate-500">
                   <p>{p.category}</p>
                   {(p.categorySlug || p.subcategory) && (
-                    <p className="mt-1 text-xs text-gray-600">
+                    <p className="mt-1 text-xs text-slate-500">
                       {[p.categorySlug, p.subcategory].filter(Boolean).join(" / ")}
                     </p>
                   )}
@@ -281,20 +281,20 @@ export default function AdminProductsPage() {
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                       p.condition === "New"
-                        ? "border-emerald/30 bg-emerald/10 text-emerald"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                         : p.condition === "Refurbished"
-                          ? "border-amber/30 bg-amber/10 text-amber"
-                          : "border-gray-500/30 bg-gray-500/10 text-gray-400"
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-slate-200 bg-slate-100 text-slate-600"
                     }`}
                   >
                     {p.condition}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-medium text-white">
+                <td className="px-4 py-3 font-medium text-slate-800">
                   R{p.price.toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={p.stock > 0 ? "text-emerald" : "text-red-400"}>
+                  <span className={p.stock > 0 ? "text-emerald-700" : "text-red-700"}>
                     {p.stock}
                   </span>
                 </td>
@@ -302,8 +302,8 @@ export default function AdminProductsPage() {
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                       isPublished(p)
-                        ? "border-emerald/30 bg-emerald/10 text-emerald"
-                        : "border-gray-500/30 bg-gray-500/10 text-gray-400"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200 bg-slate-100 text-slate-600"
                     }`}
                   >
                     {isPublished(p) ? "Published" : "Unpublished"}

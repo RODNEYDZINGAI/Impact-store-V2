@@ -22,12 +22,12 @@ interface Quote {
 type StatusFilter = "all" | "new" | "contacted" | "quoted" | "won" | "lost";
 
 const STATUS_COLORS: Record<string, string> = {
-  new: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  contacted: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  quoted: "bg-violet-500/20 text-violet-300 border-violet-500/30",
-  won: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-  lost: "bg-red-500/20 text-red-400 border-red-500/30",
-  archived: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  new: "bg-blue-50 text-blue-700 border-blue-200",
+  contacted: "bg-amber-50 text-amber-700 border-amber-200",
+  quoted: "bg-violet-50 text-violet-700 border-violet-200",
+  won: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  lost: "bg-red-50 text-red-700 border-red-200",
+  archived: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 const STATUS_TABS: StatusFilter[] = ["all", "new", "contacted", "quoted", "won", "lost"];
@@ -69,17 +69,17 @@ export default function AdminQuotesPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white">Quote Requests</h1>
+      <h1 className="text-2xl font-bold text-slate-800">Quote Requests</h1>
 
       {/* Status Tabs */}
-      <div className="mt-6 flex flex-wrap gap-1 border-b border-white/[0.06]">
+      <div className="mt-6 flex flex-wrap gap-1 border-b border-slate-200">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab}
@@ -87,7 +87,7 @@ export default function AdminQuotesPage() {
             className={`px-4 py-2 text-sm font-medium capitalize transition ${
               activeTab === tab
                 ? "border-b-2 border-steel text-steel"
-                : "text-gray-500 hover:text-gray-300"
+                : "text-slate-500 hover:text-slate-600"
             }`}
           >
             {tab === "all" ? "All" : tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -97,14 +97,14 @@ export default function AdminQuotesPage() {
       </div>
 
       {quotes.length === 0 ? (
-        <p className="mt-8 text-gray-500">
+        <p className="mt-8 text-slate-500">
           No quote requests{activeTab !== "all" ? ` with status "${activeTab}"` : ""} yet.
         </p>
       ) : (
         <>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/[0.06]">
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-white/[0.06] bg-navy-light text-xs uppercase text-gray-500">
+              <thead className="border-b border-slate-200 bg-white text-xs uppercase text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Requester</th>
                   <th className="px-4 py-3">Products</th>
@@ -113,36 +113,36 @@ export default function AdminQuotesPage() {
                   <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06]">
+              <tbody className="divide-y divide-slate-200">
                 {quotes.map((q) => (
-                  <tr key={q._id} className="transition hover:bg-white/[0.04]">
+                  <tr key={q._id} className="transition hover:bg-slate-100">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-200">{q.name}</p>
-                      <p className="text-xs text-gray-500">{q.email}</p>
-                      {q.company && <p className="text-xs text-gray-600">{q.company}</p>}
+                      <p className="font-medium text-slate-700">{q.name}</p>
+                      <p className="text-xs text-slate-500">{q.email}</p>
+                      {q.company && <p className="text-xs text-slate-500">{q.company}</p>}
                     </td>
                     <td className="px-4 py-3">
                       {q.products.length > 0 ? (
                         <>
-                          <p className="text-gray-300">{q.products.map((p) => p.name).join(", ")}</p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-slate-600">{q.products.map((p) => p.name).join(", ")}</p>
+                          <p className="text-xs text-slate-500">
                             {q.products.length} product{q.products.length !== 1 ? "s" : ""}
                           </p>
                         </>
                       ) : (
-                        <p className="text-xs text-gray-600 italic">General enquiry</p>
+                        <p className="text-xs text-slate-500 italic">General enquiry</p>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                          STATUS_COLORS[q.status] ?? "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                          STATUS_COLORS[q.status] ?? "bg-slate-100 text-slate-600 border-slate-200"
                         }`}
                       >
                         {q.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400">
+                    <td className="px-4 py-3 text-slate-500">
                       {new Date(q.createdAt).toLocaleDateString("en-ZA")}
                     </td>
                     <td className="px-4 py-3">
@@ -160,7 +160,7 @@ export default function AdminQuotesPage() {
           </div>
 
           {pages > 1 && (
-            <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+            <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
               <span>
                 Page {page} of {pages} &middot; {total} total
               </span>
@@ -168,14 +168,14 @@ export default function AdminQuotesPage() {
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="rounded-lg border border-white/10 px-3 py-1.5 text-xs transition hover:border-steel disabled:opacity-40"
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs transition hover:border-steel disabled:opacity-40"
                 >
                   Previous
                 </button>
                 <button
                   disabled={page >= pages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="rounded-lg border border-white/10 px-3 py-1.5 text-xs transition hover:border-steel disabled:opacity-40"
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs transition hover:border-steel disabled:opacity-40"
                 >
                   Next
                 </button>

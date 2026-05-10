@@ -99,7 +99,7 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
   if (!coupon) {
     return (
       <div>
-        <p className="text-red-400">{error || "Coupon not found"}</p>
+        <p className="text-red-700">{error || "Coupon not found"}</p>
         <button
           onClick={() => router.push("/admin/coupons")}
           className="mt-4 text-sm text-steel hover:underline"
@@ -121,10 +121,10 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Edit Coupon</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Edit Coupon</h1>
         <button
           onClick={() => router.push("/admin/coupons")}
-          className="text-sm text-gray-500 hover:text-white"
+          className="text-sm text-slate-500 hover:text-slate-800"
         >
           Cancel
         </button>
@@ -132,35 +132,35 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
 
       <form
         onSubmit={handleSave}
-        className="max-w-lg rounded-2xl border border-white/[0.06] bg-navy-light/70 p-6"
+        className="max-w-lg rounded-2xl border border-slate-200 bg-white p-6"
       >
         {error && (
-          <p className="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</p>
+          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         )}
 
-        <label className="mb-1 block text-sm font-medium text-gray-400">
+        <label className="mb-1 block text-sm font-medium text-slate-500">
           Code
         </label>
         <input
           type="text"
           value={coupon.code}
           readOnly
-          className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-3 py-2 text-sm text-gray-500"
+          className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
         />
 
-        <label className="mb-1 block text-sm font-medium text-gray-400">
+        <label className="mb-1 block text-sm font-medium text-slate-500">
           Discount Type
         </label>
         <select
           value={discountType}
           onChange={(e) => setDiscountType(e.target.value as "percentage" | "fixed")}
-          className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-3 py-2 text-sm text-white focus:border-steel focus:outline-none"
+          className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-[#1f4f8f] focus:outline-none"
         >
           <option value="percentage">Percentage</option>
           <option value="fixed">Fixed Amount</option>
         </select>
 
-        <label className="mb-1 block text-sm font-medium text-gray-400">
+        <label className="mb-1 block text-sm font-medium text-slate-500">
           Discount Value {discountType === "percentage" ? "(%)" : "(cents)"}
         </label>
         <input
@@ -169,10 +169,10 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
           onChange={(e) => setDiscountValue(e.target.value)}
           required
           min="1"
-          className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-3 py-2 text-sm text-white focus:border-steel focus:outline-none"
+          className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-[#1f4f8f] focus:outline-none"
         />
 
-        <label className="mb-1 block text-sm font-medium text-gray-400">
+        <label className="mb-1 block text-sm font-medium text-slate-500">
           Minimum Order (cents, optional)
         </label>
         <input
@@ -180,10 +180,10 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
           value={minimumOrder}
           onChange={(e) => setMinimumOrder(e.target.value)}
           min="0"
-          className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-3 py-2 text-sm text-white focus:border-steel focus:outline-none"
+          className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-[#1f4f8f] focus:outline-none"
         />
 
-        <label className="mb-1 block text-sm font-medium text-gray-400">
+        <label className="mb-1 block text-sm font-medium text-slate-500">
           Max Uses (optional, leave empty for unlimited)
         </label>
         <input
@@ -191,25 +191,25 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
           value={maxUses}
           onChange={(e) => setMaxUses(e.target.value)}
           min="1"
-          className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-3 py-2 text-sm text-white focus:border-steel focus:outline-none"
+          className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-[#1f4f8f] focus:outline-none"
         />
 
-        <label className="mb-1 block text-sm font-medium text-gray-400">
+        <label className="mb-1 block text-sm font-medium text-slate-500">
           Expires At
         </label>
         <input
           type="datetime-local"
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
-          className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-3 py-2 text-sm text-white focus:border-steel focus:outline-none"
+          className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-[#1f4f8f] focus:outline-none"
         />
 
-        <label className="mb-6 flex items-center gap-2 text-sm text-gray-400">
+        <label className="mb-6 flex items-center gap-2 text-sm text-slate-500">
           <input
             type="checkbox"
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
-            className="rounded border-white/10"
+            className="rounded border-slate-200"
           />
           Active
         </label>
@@ -218,7 +218,7 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-gradient-to-r from-royal to-steel px-6 py-2 text-sm font-medium text-white shadow-lg shadow-royal/20 transition hover:opacity-90 disabled:opacity-50"
+            className="rounded-xl bg-[#1f4f8f] px-6 py-2 text-sm font-medium text-white shadow-md shadow-[#1f4f8f]/10 transition hover:bg-[#1f4f8f]/90 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -226,7 +226,7 @@ export default function EditCouponPage({ params }: { params: Promise<{ id: strin
             <button
               type="button"
               onClick={handleDelete}
-              className="rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
+              className="rounded-xl border border-red-200 px-4 py-2 text-sm text-red-700 transition hover:bg-red-50"
             >
               Deactivate
             </button>

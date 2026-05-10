@@ -119,13 +119,13 @@ export default function AdminCouponsPage() {
   };
 
   const inputClass =
-    "mt-1 w-full rounded-xl border border-white/[0.06] bg-navy px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:border-steel focus:outline-none";
-  const labelClass = "block text-sm font-medium text-gray-500";
+    "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-[#1f4f8f] focus:outline-none";
+  const labelClass = "block text-sm font-medium text-slate-500";
 
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
@@ -133,8 +133,8 @@ export default function AdminCouponsPage() {
   return (
     <div>
       <div>
-        <h1 className="text-2xl font-bold text-white">Coupons</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-slate-800">Coupons</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Create percentage or fixed discounts with usage limits and expiry.
         </p>
       </div>
@@ -142,9 +142,9 @@ export default function AdminCouponsPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[380px_1fr]">
         <form
           onSubmit={saveCoupon}
-          className="rounded-2xl border border-white/[0.06] bg-navy-light p-6"
+          className="rounded-2xl border border-slate-200 bg-white p-6"
         >
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-slate-800">
             {editingId ? "Edit Coupon" : "New Coupon"}
           </h2>
 
@@ -238,7 +238,7 @@ export default function AdminCouponsPage() {
               </div>
             </div>
 
-            <label className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-navy px-4 py-3 text-sm text-gray-300">
+            <label className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
               Active
               <input
                 type="checkbox"
@@ -255,7 +255,7 @@ export default function AdminCouponsPage() {
             <Button
               type="submit"
               disabled={saving}
-              className="bg-gradient-to-r from-royal to-steel text-white"
+              className="bg-[#1f4f8f] text-white hover:bg-[#1f4f8f]/90"
             >
               {saving ? "Saving..." : editingId ? "Save Changes" : "Create Coupon"}
             </Button>
@@ -263,7 +263,7 @@ export default function AdminCouponsPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-xl border border-white/[0.08] px-4 py-2 text-sm text-gray-400 hover:bg-white/[0.05] hover:text-white"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               >
                 Cancel
               </button>
@@ -271,9 +271,9 @@ export default function AdminCouponsPage() {
           </div>
         </form>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/[0.06]">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-white/[0.06] bg-navy-light text-xs uppercase text-gray-500">
+            <thead className="border-b border-slate-200 bg-white text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3">Discount</th>
@@ -284,25 +284,25 @@ export default function AdminCouponsPage() {
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06]">
+            <tbody className="divide-y divide-slate-200">
               {coupons.map((coupon) => (
-                <tr key={coupon._id} className="hover:bg-white/[0.04]">
-                  <td className="px-4 py-3 font-mono font-semibold text-white">
+                <tr key={coupon._id} className="hover:bg-slate-100">
+                  <td className="px-4 py-3 font-mono font-semibold text-slate-800">
                     {coupon.code}
                   </td>
-                  <td className="px-4 py-3 text-gray-300">
+                  <td className="px-4 py-3 text-slate-600">
                     {coupon.discountType === "percentage"
                       ? `${coupon.value}%`
                       : `R${coupon.value.toLocaleString()}`}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 text-slate-500">
                     R{(coupon.minOrderAmount ?? 0).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 text-slate-500">
                     {coupon.usedCount}
                     {coupon.maxUses ? ` / ${coupon.maxUses}` : ""}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 text-slate-500">
                     {coupon.expiresAt
                       ? new Date(coupon.expiresAt).toLocaleDateString("en-ZA")
                       : "No expiry"}
@@ -311,8 +311,8 @@ export default function AdminCouponsPage() {
                     <span
                       className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                         coupon.active
-                          ? "border-emerald/30 bg-emerald/10 text-emerald"
-                          : "border-gray-500/30 bg-gray-500/10 text-gray-500"
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-slate-100 text-slate-600"
                       }`}
                     >
                       {coupon.active ? "Active" : "Inactive"}
@@ -331,7 +331,7 @@ export default function AdminCouponsPage() {
                       </button>
                       <button
                         onClick={() => void deleteCoupon(coupon)}
-                        className="rounded-lg px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10"
+                        className="rounded-lg px-3 py-1.5 text-sm text-red-700 hover:bg-red-50"
                       >
                         Delete
                       </button>
@@ -341,7 +341,7 @@ export default function AdminCouponsPage() {
               ))}
               {coupons.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                     No coupons created yet.
                   </td>
                 </tr>

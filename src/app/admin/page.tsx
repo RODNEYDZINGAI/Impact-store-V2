@@ -46,19 +46,19 @@ interface DashboardData {
 }
 
 const orderStatusColors: Record<string, string> = {
-  pending: "bg-amber/10 text-amber",
-  confirmed: "bg-blue-500/10 text-blue-400",
-  shipped: "bg-violet/10 text-violet",
-  delivered: "bg-emerald/10 text-emerald",
+  pending: "bg-amber-50 text-amber-700",
+  confirmed: "bg-blue-50 text-blue-700",
+  shipped: "bg-violet-50 text-violet-700",
+  delivered: "bg-emerald-50 text-emerald-700",
 };
 
 const quoteStatusColors: Record<string, string> = {
-  new: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  contacted: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  quoted: "bg-violet-500/20 text-violet-300 border-violet-500/30",
-  won: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-  lost: "bg-red-500/20 text-red-400 border-red-500/30",
-  archived: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  new: "bg-blue-50 text-blue-700 border-blue-200",
+  contacted: "bg-amber-50 text-amber-700 border-amber-200",
+  quoted: "bg-violet-50 text-violet-700 border-violet-200",
+  won: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  lost: "bg-red-50 text-red-700 border-red-200",
+  archived: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 export default function AdminDashboard() {
@@ -77,18 +77,18 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
 
   if (!data) {
-    return <div className="text-white">Failed to load dashboard data</div>;
+    return <div className="text-slate-800">Failed to load dashboard data</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
 
       {/* Stats Grid */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
           <p className="mt-2 text-3xl font-bold">{data.counts.quotes}</p>
           <Link
             href="/admin/quotes"
-            className="mt-2 inline-block text-xs text-purple-300 hover:text-white"
+            className="mt-2 inline-block text-xs text-purple-100 hover:text-white"
           >
             View all →
           </Link>
@@ -143,9 +143,9 @@ export default function AdminDashboard() {
       {/* This Month + Order Status */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* Products Overview */}
-        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white">Products</h3>
+            <h3 className="font-semibold text-slate-800">Products</h3>
             <Link
               href="/admin/products"
               className="text-sm text-steel hover:text-violet-bright"
@@ -158,8 +158,8 @@ export default function AdminDashboard() {
               {data.counts.products}
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total products</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">Total products</p>
+              <p className="text-sm text-slate-500">
                 {data.lowStockProducts.length > 0 && (
                   <span className="text-amber">{data.lowStockProducts.length} low stock</span>
                 )}
@@ -169,15 +169,15 @@ export default function AdminDashboard() {
 
           {data.lowStockProducts.length > 0 && (
             <div className="mt-4">
-              <p className="text-xs uppercase tracking-wider text-gray-500">Low Stock Alert</p>
+              <p className="text-xs uppercase tracking-wider text-slate-500">Low Stock Alert</p>
               <div className="mt-2 space-y-2">
                 {data.lowStockProducts.map((product) => (
                   <div
                     key={product._id}
-                    className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2"
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
                   >
-                    <span className="truncate text-sm text-gray-300">{product.name}</span>
-                    <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs text-red-400">
+                    <span className="truncate text-sm text-slate-600">{product.name}</span>
+                    <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
                       {product.stock} left
                     </span>
                   </div>
@@ -188,32 +188,32 @@ export default function AdminDashboard() {
         </div>
 
         {/* Order Status Breakdown */}
-        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white">Order Status</h3>
+            <h3 className="font-semibold text-slate-800">Order Status</h3>
             <div className="text-right">
-              <p className="text-xs text-gray-500">This month</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-xs text-slate-500">This month</p>
+              <p className="text-lg font-bold text-slate-800">
                 R{data.revenue.thisMonth.toLocaleString()}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-white/[0.02] p-4 text-center">
+            <div className="rounded-xl bg-slate-50 p-4 text-center">
               <p className="text-2xl font-bold text-amber">{data.orderStatus.pending}</p>
-              <p className="text-xs text-gray-400">Pending</p>
+              <p className="text-xs text-slate-500">Pending</p>
             </div>
-            <div className="rounded-xl bg-white/[0.02] p-4 text-center">
+            <div className="rounded-xl bg-slate-50 p-4 text-center">
               <p className="text-2xl font-bold text-blue-400">{data.orderStatus.confirmed}</p>
-              <p className="text-xs text-gray-400">Confirmed</p>
+              <p className="text-xs text-slate-500">Confirmed</p>
             </div>
-            <div className="rounded-xl bg-white/[0.02] p-4 text-center">
+            <div className="rounded-xl bg-slate-50 p-4 text-center">
               <p className="text-2xl font-bold text-violet">{data.orderStatus.shipped}</p>
-              <p className="text-xs text-gray-400">Shipped</p>
+              <p className="text-xs text-slate-500">Shipped</p>
             </div>
-            <div className="rounded-xl bg-white/[0.02] p-4 text-center">
-              <p className="text-2xl font-bold text-emerald">{data.orderStatus.delivered}</p>
-              <p className="text-xs text-gray-400">Delivered</p>
+            <div className="rounded-xl bg-slate-50 p-4 text-center">
+              <p className="text-2xl font-bold text-emerald-700">{data.orderStatus.delivered}</p>
+              <p className="text-xs text-slate-500">Delivered</p>
             </div>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
       {/* Recent Orders */}
       <div className="mt-6">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-white">Recent Orders</h3>
+          <h3 className="font-semibold text-slate-800">Recent Orders</h3>
           <Link
             href="/admin/orders"
             className="text-sm text-steel hover:text-violet-bright"
@@ -234,23 +234,23 @@ export default function AdminDashboard() {
           {data.recentOrders.map((order) => (
             <div
               key={order._id}
-              className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-navy-light px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3"
             >
               <div>
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-slate-800">
                   Order #{order._id.slice(-8).toUpperCase()}
                 </p>
-                <p className="text-xs text-gray-500">{order.user?.name || "Guest"}</p>
+                <p className="text-xs text-slate-500">{order.user?.name || "Guest"}</p>
               </div>
               <div className="flex items-center gap-4">
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                    orderStatusColors[order.status] || "bg-gray-500/10 text-gray-400"
+                    orderStatusColors[order.status] || "bg-slate-100 text-slate-600"
                   }`}
                 >
                   {order.status}
                 </span>
-                <span className="font-medium text-white">
+                <span className="font-medium text-slate-800">
                   R{order.total.toLocaleString()}
                 </span>
               </div>
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
       {data.recentQuotes.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white">Recent Quote Requests</h3>
+            <h3 className="font-semibold text-slate-800">Recent Quote Requests</h3>
             <Link
               href="/admin/quotes"
               className="text-sm text-steel hover:text-violet-bright"
@@ -276,11 +276,11 @@ export default function AdminDashboard() {
               <Link
                 key={quote._id}
                 href={`/admin/quotes/${quote._id}`}
-                className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-navy-light px-4 py-3 transition hover:border-steel/30 hover:bg-white/[0.04]"
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:border-steel/30 hover:bg-slate-100"
               >
                 <div>
-                  <p className="text-sm font-medium text-white">{quote.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium text-slate-800">{quote.name}</p>
+                  <p className="text-xs text-slate-500">
                     {quote.company ? `${quote.company} · ` : ""}
                     {quote.products.length > 0
                       ? `${quote.products.length} product${quote.products.length !== 1 ? "s" : ""}`
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
                 </div>
                 <span
                   className={`rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${
-                    quoteStatusColors[quote.status] || "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                    quoteStatusColors[quote.status] || "bg-slate-100 text-slate-600 border-slate-200"
                   }`}
                 >
                   {quote.status}

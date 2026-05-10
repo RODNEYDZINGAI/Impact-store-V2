@@ -145,39 +145,39 @@ export default function EditProductPage() {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" /></div>;
+    return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" /></div>;
   }
 
-  const inputClass = "mt-1 w-full rounded-xl border border-white/[0.06] bg-navy px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:border-steel focus:outline-none";
-  const selectClass = "mt-1 w-full rounded-xl border border-white/[0.06] bg-navy px-4 py-2.5 text-sm text-white focus:border-steel focus:outline-none";
+  const inputClass = "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-[#1f4f8f] focus:outline-none";
+  const selectClass = "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-[#1f4f8f] focus:outline-none";
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white">Edit Product</h1>
+      <h1 className="text-2xl font-bold text-slate-800">Edit Product</h1>
       <form onSubmit={handleSubmit} className="mt-6 max-w-2xl space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">Product Name</label>
+            <label className="block text-sm font-medium text-slate-500">Product Name</label>
             <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">Slug</label>
+            <label className="block text-sm font-medium text-slate-500">Slug</label>
             <input type="text" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">SKU</label>
+            <label className="block text-sm font-medium text-slate-500">SKU</label>
             <input type="text" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value.toUpperCase() })} className={inputClass} placeholder="e.g., LAP-DEL-A3F2" />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">Subtitle</label>
+            <label className="block text-sm font-medium text-slate-500">Subtitle</label>
             <input type="text" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className={inputClass} placeholder="Short tagline shown under product name" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Brand</label>
+            <label className="block text-sm font-medium text-slate-500">Brand</label>
             <input type="text" required value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Main Category</label>
+            <label className="block text-sm font-medium text-slate-500">Main Category</label>
             <select value={form.categorySlug} onChange={(e) => syncTaxonomySelection(e.target.value)} className={selectClass}>
               {taxonomy.map((category) => (
                 <option key={category.slug} value={category.slug}>{category.name}</option>
@@ -185,7 +185,7 @@ export default function EditProductPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Subcategory</label>
+            <label className="block text-sm font-medium text-slate-500">Subcategory</label>
             <select
               value={form.subcategory}
               onChange={(e) => syncTaxonomySelection(form.categorySlug, e.target.value)}
@@ -197,38 +197,38 @@ export default function EditProductPage() {
             </select>
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">Legacy Category</label>
+            <label className="block text-sm font-medium text-slate-500">Legacy Category</label>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={selectClass}>
               {LEGACY_CATEGORY_OPTIONS.map((category) => (
                 <option key={category}>{category}</option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-gray-600">Kept for existing product links, reports, and backward-compatible filters.</p>
+            <p className="mt-1 text-xs text-slate-500">Kept for existing product links, reports, and backward-compatible filters.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Condition</label>
+            <label className="block text-sm font-medium text-slate-500">Condition</label>
             <select value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value })} className={selectClass}>
               <option>New</option><option>Refurbished</option><option>Used</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Price (R)</label>
+            <label className="block text-sm font-medium text-slate-500">Price (R)</label>
             <input type="number" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Original Price (R)</label>
+            <label className="block text-sm font-medium text-slate-500">Original Price (R)</label>
             <input type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">Stock</label>
+            <label className="block text-sm font-medium text-slate-500">Stock</label>
             <input type="number" required value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">Description</label>
+            <label className="block text-sm font-medium text-slate-500">Description</label>
             <textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-500">Specifications</label>
+            <label className="block text-sm font-medium text-slate-500">Specifications</label>
             <div className="mt-2 space-y-2">
               {specs.map((spec, index) => (
                 <div key={index} className="flex gap-2">
@@ -249,7 +249,7 @@ export default function EditProductPage() {
                   <button
                     type="button"
                     onClick={() => removeSpec(index)}
-                    className="rounded-lg bg-red-500/20 px-3 text-red-400 hover:bg-red-500/30"
+                    className="rounded-lg bg-red-50 px-3 text-red-700 hover:bg-red-100"
                   >
                     ×
                   </button>
@@ -268,30 +268,30 @@ export default function EditProductPage() {
           {/* Variants */}
           <div className="sm:col-span-2">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-500">Variants</label>
-              <span className="text-xs text-gray-600">Optional — add if this product has multiple SKUs (e.g. colour, storage)</span>
+              <label className="block text-sm font-medium text-slate-500">Variants</label>
+              <span className="text-xs text-slate-500">Optional — add if this product has multiple SKUs (e.g. colour, storage)</span>
             </div>
             <div className="mt-2 space-y-3">
               {variants.map((variant, index) => (
                 <div
                   key={variant.variantId}
-                  className="rounded-xl border border-white/[0.06] bg-navy p-4"
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                       Variant {index + 1}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeVariant(index)}
-                      className="rounded-lg bg-red-500/20 px-2.5 py-1 text-xs text-red-400 hover:bg-red-500/30"
+                      className="rounded-lg bg-red-50 px-2.5 py-1 text-xs text-red-700 hover:bg-red-100"
                     >
                       Remove
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <label className="block text-xs text-gray-500">Title</label>
+                      <label className="block text-xs text-slate-500">Title</label>
                       <input
                         type="text"
                         required
@@ -302,7 +302,7 @@ export default function EditProductPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500">SKU</label>
+                      <label className="block text-xs text-slate-500">SKU</label>
                       <input
                         type="text"
                         placeholder="Auto-generated if empty"
@@ -312,7 +312,7 @@ export default function EditProductPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500">Condition</label>
+                      <label className="block text-xs text-slate-500">Condition</label>
                       <select
                         value={variant.condition}
                         onChange={(e) => updateVariant(index, "condition", e.target.value as VariantDraft["condition"])}
@@ -324,7 +324,7 @@ export default function EditProductPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500">Price (R)</label>
+                      <label className="block text-xs text-slate-500">Price (R)</label>
                       <input
                         type="number"
                         required
@@ -335,7 +335,7 @@ export default function EditProductPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500">Stock</label>
+                      <label className="block text-xs text-slate-500">Stock</label>
                       <input
                         type="number"
                         required
@@ -366,15 +366,15 @@ export default function EditProductPage() {
             />
           </div>
           <div className="flex items-center gap-2 sm:col-span-2">
-            <input type="checkbox" id="featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} className="rounded border-white/[0.06] bg-navy" />
-            <label htmlFor="featured" className="text-sm text-gray-400">Featured product</label>
+            <input type="checkbox" id="featured" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} className="rounded border-slate-200 bg-slate-50" />
+            <label htmlFor="featured" className="text-sm text-slate-500">Featured product</label>
           </div>
         </div>
         <div className="flex gap-3">
-          <Button type="submit" disabled={saving} className="bg-gradient-to-r from-royal to-steel text-white hover:from-steel hover:to-royal shadow-lg shadow-royal/25">
+          <Button type="submit" disabled={saving} className="bg-[#1f4f8f] text-white shadow-md shadow-[#1f4f8f]/10 hover:bg-[#1f4f8f]/90">
             {saving ? "Saving..." : "Save Changes"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push("/admin/products")} className="border-white/10 text-gray-400 hover:bg-white/5 hover:text-white">
+          <Button type="button" variant="outline" onClick={() => router.push("/admin/products")} className="border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
             Cancel
           </Button>
         </div>

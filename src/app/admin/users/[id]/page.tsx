@@ -36,11 +36,11 @@ interface User {
 }
 
 const statusColors: Record<string, string> = {
-  pending: "bg-amber/10 text-amber border-amber/30",
-  confirmed: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-  shipped: "bg-violet/10 text-violet border-violet/30",
-  delivered: "bg-emerald/10 text-emerald border-emerald/30",
-  cancelled: "bg-red-500/10 text-red-400 border-red-500/30",
+  pending: "bg-amber-50 text-amber-700 border-amber-200",
+  confirmed: "bg-blue-50 text-blue-700 border-blue-200",
+  shipped: "bg-violet-50 text-violet-700 border-violet-200",
+  delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  cancelled: "bg-red-50 text-red-700 border-red-200",
 };
 
 export default function UserDetailPage() {
@@ -63,7 +63,7 @@ export default function UserDetailPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
@@ -71,7 +71,7 @@ export default function UserDetailPage() {
   if (!user) {
     return (
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-white">User not found</h1>
+        <h1 className="text-2xl font-bold text-slate-800">User not found</h1>
         <Link
           href="/admin/users"
           className="mt-4 inline-block text-steel hover:text-violet-bright"
@@ -89,42 +89,42 @@ export default function UserDetailPage() {
       <div className="flex items-center gap-4">
         <Link
           href="/admin/users"
-          className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-white/[0.05] hover:text-white"
+          className="rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
         >
           ← Back
         </Link>
-        <h1 className="text-2xl font-bold text-white">Customer Details</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Customer Details</h1>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         {/* Customer Info Card */}
-        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-royal to-steel text-xl font-bold text-white">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">{user.name}</h2>
-              <p className="text-sm text-gray-400">{user.email}</p>
+              <h2 className="text-lg font-semibold text-slate-800">{user.name}</h2>
+              <p className="text-sm text-slate-500">{user.email}</p>
             </div>
           </div>
 
           <div className="mt-6 space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Status</span>
+              <span className="text-sm text-slate-500">Status</span>
               <span
                 className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                   user.emailVerified
-                    ? "border-emerald/30 bg-emerald/10 text-emerald"
-                    : "border-amber/30 bg-amber/10 text-amber"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700"
                 }`}
               >
                 {user.emailVerified ? "Verified" : "Unverified"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Joined</span>
-              <span className="text-sm text-gray-300">
+              <span className="text-sm text-slate-500">Joined</span>
+              <span className="text-sm text-slate-600">
                 {new Date(user.createdAt).toLocaleDateString("en-ZA", {
                   year: "numeric",
                   month: "long",
@@ -133,12 +133,12 @@ export default function UserDetailPage() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Total Orders</span>
-              <span className="text-sm text-white">{orders.length}</span>
+              <span className="text-sm text-slate-500">Total Orders</span>
+              <span className="text-sm text-slate-800">{orders.length}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Total Spent</span>
-              <span className="text-sm font-medium text-white">
+              <span className="text-sm text-slate-500">Total Spent</span>
+              <span className="text-sm font-medium text-slate-800">
                 R{totalSpent.toLocaleString()}
               </span>
             </div>
@@ -146,29 +146,29 @@ export default function UserDetailPage() {
         </div>
 
         {/* Address Card */}
-        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
-          <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h3 className="text-sm font-medium uppercase tracking-wider text-slate-500">
             Delivery Address
           </h3>
           {user.address ? (
             <div className="mt-4 space-y-2">
-              <p className="text-white">{user.address.street}</p>
-              <p className="text-gray-300">
+              <p className="text-slate-800">{user.address.street}</p>
+              <p className="text-slate-600">
                 {user.address.city}, {user.address.province}
               </p>
-              <p className="text-gray-300">{user.address.postalCode}</p>
-              <p className="text-gray-400">{user.address.country}</p>
+              <p className="text-slate-600">{user.address.postalCode}</p>
+              <p className="text-slate-500">{user.address.country}</p>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm text-slate-500">
               No address saved yet.
             </p>
           )}
         </div>
 
         {/* Stats Card */}
-        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
-          <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h3 className="text-sm font-medium uppercase tracking-wider text-slate-500">
             Order Statistics
           </h3>
           <div className="mt-4 space-y-3">
@@ -176,29 +176,29 @@ export default function UserDetailPage() {
               const count = orders.filter((o) => o.status === status).length;
               return (
                 <div key={status} className="flex justify-between">
-                  <span className="text-sm capitalize text-gray-400">
+                  <span className="text-sm capitalize text-slate-500">
                     {status}
                   </span>
-                  <span className="text-sm text-white">{count}</span>
+                  <span className="text-sm text-slate-800">{count}</span>
                 </div>
               );
             })}
-            <div className="border-t border-white/[0.06] pt-3">
+            <div className="border-t border-slate-200 pt-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-400">Referral Uses</span>
-                <span className="text-sm text-white">
+                <span className="text-sm text-slate-500">Referral Uses</span>
+                <span className="text-sm text-slate-800">
                   {user.referralStats?.usageCount ?? 0}
                 </span>
               </div>
               <div className="mt-3 flex justify-between">
-                <span className="text-sm text-gray-400">Referral Revenue</span>
-                <span className="text-sm text-white">
+                <span className="text-sm text-slate-500">Referral Revenue</span>
+                <span className="text-sm text-slate-800">
                   R{(user.referralStats?.revenue ?? 0).toLocaleString()}
                 </span>
               </div>
               <div className="mt-3 flex justify-between">
-                <span className="text-sm text-gray-400">Discount Issued</span>
-                <span className="text-sm text-white">
+                <span className="text-sm text-slate-500">Discount Issued</span>
+                <span className="text-sm text-slate-800">
                   R{(user.referralStats?.discountIssued ?? 0).toLocaleString()}
                 </span>
               </div>
@@ -207,9 +207,9 @@ export default function UserDetailPage() {
         </div>
 
         {/* Referral Code Card */}
-        <div className="rounded-2xl border border-white/[0.06] bg-navy-light p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500">
+            <h3 className="text-sm font-medium uppercase tracking-wider text-slate-500">
               Referral Program
             </h3>
             <label className="relative inline-flex cursor-pointer items-center">
@@ -247,13 +247,13 @@ export default function UserDetailPage() {
                 }}
                 disabled={updatingReferral}
               />
-              <div className="peer h-6 w-11 rounded-full bg-gray-700 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-emerald-600 peer-checked:after:translate-x-full peer-disabled:opacity-50"></div>
+              <div className="peer h-6 w-11 rounded-full bg-slate-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-emerald-600 peer-checked:after:translate-x-full peer-disabled:opacity-50"></div>
             </label>
           </div>
 
           {!!user.referralEnabled && user.referralCode ? (
             <div className="mt-4">
-              <p className="text-xs text-gray-500">Referral Code</p>
+              <p className="text-xs text-slate-500">Referral Code</p>
               <div className="mt-2 flex items-center gap-3">
                 <div className="rounded-lg bg-gradient-to-r from-gold/20 to-gold/10 px-4 py-2">
                   <span className="font-mono text-lg font-bold text-gold">
@@ -265,18 +265,18 @@ export default function UserDetailPage() {
                     navigator.clipboard.writeText(user.referralCode!);
                     alert("Copied to clipboard!");
                   }}
-                  className="rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-white/[0.05] hover:text-white"
+                  className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                   title="Copy code"
                 >
                   Copy
                 </button>
               </div>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-slate-500">
                 Customer gets 5% off when using this code at checkout
               </p>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm text-slate-500">
               Enable to generate a referral code for this customer
             </p>
           )}
@@ -285,25 +285,25 @@ export default function UserDetailPage() {
 
       {/* Orders Section */}
       <div className="mt-8">
-        <h2 className="text-xl font-semibold text-white">Order History</h2>
+        <h2 className="text-xl font-semibold text-slate-800">Order History</h2>
 
         {orders.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-white/[0.06] bg-navy-light p-8 text-center">
-            <p className="text-gray-500">No orders yet.</p>
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <p className="text-slate-500">No orders yet.</p>
           </div>
         ) : (
           <div className="mt-4 space-y-4">
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="rounded-2xl border border-white/[0.06] bg-navy-light p-6"
+                className="rounded-2xl border border-slate-200 bg-white p-6"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-slate-800">
                       Order #{order._id.slice(-8).toUpperCase()}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-500">
                       {new Date(order.createdAt).toLocaleDateString("en-ZA", {
                         year: "numeric",
                         month: "long",
@@ -315,31 +315,31 @@ export default function UserDetailPage() {
                     <span
                       className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${
                         statusColors[order.status] ||
-                        "border-gray-500/30 bg-gray-500/10 text-gray-400"
+                        "border-slate-200 bg-slate-100 text-slate-600"
                       }`}
                     >
                       {order.status}
                     </span>
-                    <span className="text-lg font-bold text-white">
+                    <span className="text-lg font-bold text-slate-800">
                       R{order.total.toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
+                <div className="mt-4 space-y-2 border-t border-slate-200 pt-4">
                   {order.items.map((item, i) => (
                     <div key={i} className="flex justify-between text-sm">
-                      <span className="text-gray-400">
+                      <span className="text-slate-500">
                         {item.name} x{item.quantity}
                       </span>
-                      <span className="text-gray-300">
+                      <span className="text-slate-600">
                         R{(item.price * item.quantity).toLocaleString()}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <p className="mt-3 text-xs text-gray-500">
+                <p className="mt-3 text-xs text-slate-500">
                   Ship to: {order.shippingAddress.fullName},{" "}
                   {order.shippingAddress.city}, {order.shippingAddress.province}
                 </p>

@@ -2,6 +2,12 @@
 
 All Impact Store project changes should be documented here or in linked feature docs under `docs/`.
 
+## 2026-05-10 (phase 8 — admin light theme)
+
+### Changed
+
+- Admin section pages now use a light professional theme with slate backgrounds, white panels, slate borders/text, light form controls, light status badges, and a royal active navigation state while preserving existing admin functionality.
+
 ## 2026-05-10 (phase 7 — recycling page)
 
 ### Added

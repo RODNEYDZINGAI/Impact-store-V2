@@ -39,19 +39,19 @@ export default function AdminUsersPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-steel border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-[#1f4f8f]" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white">Users</h1>
-      <p className="mt-1 text-gray-500">{users.length} registered customers</p>
+      <h1 className="text-2xl font-bold text-slate-800">Users</h1>
+      <p className="mt-1 text-slate-500">{users.length} registered customers</p>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-white/[0.06]">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-white/[0.06] bg-navy-light text-xs uppercase text-gray-500">
+          <thead className="border-b border-slate-200 bg-white text-xs uppercase text-slate-500">
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
@@ -62,11 +62,11 @@ export default function AdminUsersPage() {
               <th className="px-4 py-3">Joined</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.06]">
+          <tbody className="divide-y divide-slate-200">
             {users.map((user) => (
               <tr
                 key={user._id}
-                className="cursor-pointer transition hover:bg-white/[0.04]"
+                className="cursor-pointer transition hover:bg-slate-100"
                 onClick={() => router.push(`/admin/users/${user._id}`)}
               >
                 <td className="px-4 py-3">
@@ -74,16 +74,16 @@ export default function AdminUsersPage() {
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-royal to-steel text-xs font-bold text-white">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
-                    <span className="font-medium text-gray-200">{user.name}</span>
+                    <span className="font-medium text-slate-700">{user.name}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-400">{user.email}</td>
+                <td className="px-4 py-3 text-slate-500">{user.email}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                       user.emailVerified
-                        ? "border-emerald/30 bg-emerald/10 text-emerald"
-                        : "border-amber/30 bg-amber/10 text-amber"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700"
                     }`}
                   >
                     {user.emailVerified ? "Verified" : "Unverified"}
@@ -95,18 +95,18 @@ export default function AdminUsersPage() {
                       {user.referralCode}
                     </span>
                   ) : (
-                    <span className="text-gray-500">—</span>
+                    <span className="text-slate-500">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-400">
+                <td className="px-4 py-3 text-slate-500">
                   {user.referralStats?.usageCount ?? 0}
                 </td>
-                <td className="px-4 py-3 text-gray-400">
+                <td className="px-4 py-3 text-slate-500">
                   {user.address
                     ? `${user.address.city}, ${user.address.province}`
                     : "—"}
                 </td>
-                <td className="px-4 py-3 text-gray-500">
+                <td className="px-4 py-3 text-slate-500">
                   {new Date(user.createdAt).toLocaleDateString("en-ZA", {
                     year: "numeric",
                     month: "short",
