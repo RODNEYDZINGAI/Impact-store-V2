@@ -2,6 +2,13 @@
 
 All Impact Store project changes should be documented here or in linked feature docs under `docs/`.
 
+## 2026-05-10 (phase 7 — recycling page)
+
+### Added
+
+- **Electronics recycling page** (`/recycling`): full marketing page for business e-waste collection services with hero, stats bar, accepted items grid, benefits section, 4-step process, collection request form (submits via `/api/contact`), environmental impact section with SA e-waste statistics, and CTA banner.
+- Navbar updated with Recycling link between About and Contact.
+
 ## 2026-05-09 (phase 6 — category taxonomy and product discovery)
 
 ### Added
