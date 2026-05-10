@@ -1,9 +1,9 @@
 "use client";
 
-import { Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { Menu, Search, ShoppingBag, UserRound, X, ChevronDown, LayoutDashboard, User, Package, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 const productLinks = [
@@ -27,6 +27,23 @@ export default function Navbar() {
   const { data: session } = useSession();
   const { itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
+
+  const isAdmin = session?.user?.role === "admin";
 
   return (
     <div className="sticky inset-x-0 top-0 z-50">
@@ -128,13 +145,92 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <Link
-              href={session ? (session.user.role === "admin" ? "/admin" : "/profile") : "/login"}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
-              aria-label="Account"
-            >
-              <UserRound className="h-4 w-4" />
-            </Link>
+
+            {/* User dropdown */}
+            {session ? (
+              <div ref={userMenuRef} className="relative">
+                <button
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className="flex h-10 items-center gap-1.5 rounded-full border border-slate-200 pl-3 pr-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                  aria-label="Account menu"
+                >
+                  <span className="hidden max-w-[100px] truncate text-sm font-medium sm:inline">
+                    {session.user?.name?.split(" ")[0] || "Account"}
+                  </span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1f4f8f] text-xs font-bold text-white">
+                    {(session.user?.name?.[0] || "U").toUpperCase()}
+                  </div>
+                  <ChevronDown className={`h-3 w-3 transition ${userMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-slate-200 bg-white py-2 shadow-xl">
+                    {/* User info header */}
+                    <div className="border-b border-slate-100 px-4 py-3">
+                      <p className="text-sm font-semibold text-slate-800">{session.user?.name}</p>
+                      <p className="mt-0.5 truncate text-xs text-slate-400">{session.user?.email}</p>
+                      {isAdmin && (
+                        <span className="mt-1.5 inline-block rounded-full bg-[#1f4f8f]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#1f4f8f]">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Menu links */}
+                    <div className="mt-1 flex flex-col gap-0.5 px-2">
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                          <LayoutDashboard className="h-4 w-4 text-slate-400" />
+                          Dashboard
+                        </Link>
+                      )}
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                      >
+                        <User className="h-4 w-4 text-slate-400" />
+                        Profile
+                      </Link>
+                      <Link
+                        href="/orders"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                      >
+                        <Package className="h-4 w-4 text-slate-400" />
+                        My Orders
+                      </Link>
+                    </div>
+
+                    {/* Logout */}
+                    <div className="mt-1 border-t border-slate-100 px-2 pt-1">
+                      <button
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          signOut({ callbackUrl: "/" });
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex h-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                aria-label="Sign in"
+              >
+                <UserRound className="h-4 w-4" />
+              </Link>
+            )}
           </div>
         </nav>
 
@@ -151,13 +247,31 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href={session ? "/profile" : "/login"}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-              >
-                {session ? "Account" : "Sign In"}
-              </Link>
+              {session ? (
+                <>
+                  <Link
+                    href={isAdmin ? "/admin" : "/profile"}
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                  >
+                    {isAdmin ? "Dashboard" : "Profile"}
+                  </Link>
+                  <button
+                    onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                    className="rounded-lg px-3 py-2 text-left font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         )}
