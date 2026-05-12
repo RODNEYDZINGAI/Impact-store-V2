@@ -24,10 +24,11 @@ interface Product {
 interface Props {
   product: Product;
   selectedVariant?: ProductVariant | null;
+  quantity?: number;
 }
 
-export default function AddToCartButton({ product, selectedVariant }: Props) {
-  const { addToCart, items } = useCart();
+export default function AddToCartButton({ product, selectedVariant, quantity = 1 }: Props) {
+  const { addToCart, updateQuantity, items } = useCart();
 
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const effectivePrice = selectedVariant ? selectedVariant.price : product.price;
@@ -39,13 +40,13 @@ export default function AddToCartButton({ product, selectedVariant }: Props) {
     : product._id;
 
   const inCart = items.find((i) => i.cartKey === cartKey)?.quantity ?? 0;
-  const atLimit = inCart >= effectiveStock;
+  const atLimit = inCart + quantity > effectiveStock;
 
   if (hasVariants && !selectedVariant) {
     return (
       <button
         disabled
-        className="mt-6 w-full cursor-not-allowed rounded-md bg-slate-300 px-5 py-3 text-sm font-semibold text-slate-500"
+        className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-300 px-5 py-3 text-sm font-semibold text-slate-500"
       >
         Select an option above
       </button>
@@ -56,29 +57,34 @@ export default function AddToCartButton({ product, selectedVariant }: Props) {
     return (
       <button
         disabled
-        className="mt-6 w-full cursor-not-allowed rounded-md bg-slate-300 px-5 py-3 text-sm font-semibold text-slate-500"
+        className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-300 px-5 py-3 text-sm font-semibold text-slate-500"
       >
         Out of Stock
       </button>
     );
   }
 
+  const handleAddToCart = () => {
+    addToCart({
+      _id: product._id,
+      variantId: selectedVariant?.variantId,
+      variantTitle: selectedVariant?.title,
+      name: product.name,
+      price: effectivePrice,
+      image: effectiveImage,
+      condition: effectiveCondition,
+    });
+    if (quantity > 1) {
+      updateQuantity(cartKey, Math.min(inCart + quantity, effectiveStock));
+    }
+  };
+
   return (
     <div className="mt-6">
       <button
-        onClick={() =>
-          addToCart({
-            _id: product._id,
-            variantId: selectedVariant?.variantId,
-            variantTitle: selectedVariant?.title,
-            name: product.name,
-            price: effectivePrice,
-            image: effectiveImage,
-            condition: effectiveCondition,
-          })
-        }
+        onClick={handleAddToCart}
         disabled={atLimit}
-        className={`w-full rounded-md px-5 py-3 text-sm font-semibold transition ${
+        className={`w-full rounded-xl px-5 py-3 text-sm font-semibold transition ${
           atLimit
             ? "cursor-not-allowed bg-slate-300 text-slate-500"
             : "bg-[#1f4f8f] text-white hover:bg-[#173b6b]"

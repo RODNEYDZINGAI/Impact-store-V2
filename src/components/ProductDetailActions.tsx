@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Minus, Plus, Clock, Truck } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
 
 interface ProductVariant {
@@ -34,14 +35,22 @@ export default function ProductDetailActions({ product }: { product: ProductForA
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     publishedVariants.length === 1 ? publishedVariants[0] : null
   );
+  const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant?.variantId]);
 
   const displayPrice = selectedVariant?.price ?? product.price;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product.originalPrice;
   const displayStock = selectedVariant?.stock ?? product.stock;
   const savings = displayOriginalPrice ? displayOriginalPrice - displayPrice : 0;
+  const isLowStock = displayStock > 0 && displayStock <= 5;
+  const showPriceDetails = !hasVariants || !!selectedVariant;
 
   return (
     <div>
+      {/* Price */}
       <div className="mt-6">
         <div className="flex items-end gap-3">
           <span className="text-4xl font-semibold text-[#1f4f8f]">
@@ -49,19 +58,20 @@ export default function ProductDetailActions({ product }: { product: ProductForA
               ? `From R${Math.min(...publishedVariants.map((v) => v.price)).toLocaleString()}`
               : `R${displayPrice.toLocaleString()}`}
           </span>
-          {displayOriginalPrice && selectedVariant && (
+          {displayOriginalPrice && showPriceDetails && (
             <span className="mb-1 text-lg text-slate-400 line-through">
               R{displayOriginalPrice.toLocaleString()}
             </span>
           )}
         </div>
-        {savings > 0 && selectedVariant && (
+        {savings > 0 && showPriceDetails && (
           <p className="mt-2 text-lg font-semibold text-emerald-700">
             Save R{savings.toLocaleString()} vs market price
           </p>
         )}
       </div>
 
+      {/* Variants */}
       {hasVariants ? (
         <div className="mt-4">
           <p className="text-sm font-medium text-slate-700">Select option:</p>
@@ -97,7 +107,56 @@ export default function ProductDetailActions({ product }: { product: ProductForA
         </div>
       )}
 
-      <AddToCartButton product={product} selectedVariant={selectedVariant} />
+      {/* Low stock urgency */}
+      {isLowStock && showPriceDetails && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <Clock className="h-4 w-4 flex-shrink-0 text-amber-600" />
+          <p className="text-sm font-medium text-amber-700">
+            Only {displayStock} left — order soon!
+          </p>
+        </div>
+      )}
+
+      {/* Quantity selector */}
+      {displayStock > 0 && showPriceDetails && (
+        <div className="mt-5">
+          <p className="mb-2 text-sm font-medium text-slate-700">Quantity</p>
+          <div className="inline-flex overflow-hidden rounded-xl border border-slate-200">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1}
+              aria-label="Decrease quantity"
+              className="px-4 py-2.5 text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="min-w-[3rem] border-x border-slate-200 bg-white px-3 py-2.5 text-center font-semibold text-slate-800">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((q) => Math.min(displayStock, q + 1))}
+              disabled={quantity >= displayStock}
+              aria-label="Increase quantity"
+              className="px-4 py-2.5 text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AddToCartButton product={product} selectedVariant={selectedVariant} quantity={quantity} />
+
+      {/* Delivery estimate */}
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+        <Truck className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500" />
+        <div>
+          <p className="text-xs font-medium text-slate-700">Estimated Delivery</p>
+          <p className="text-xs text-slate-500">
+            2–3 business days (Gauteng) · 3–5 business days nationwide
+          </p>
+        </div>
+      </div>
 
       <Link
         href={`/quote?product=${product._id}&productName=${encodeURIComponent(product.name)}`}
