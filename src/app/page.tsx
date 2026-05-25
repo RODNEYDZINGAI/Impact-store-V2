@@ -1,11 +1,33 @@
 export const dynamic = "force-dynamic";
 
 import { Cpu, MonitorSmartphone, Package, ShieldCheck, TabletSmartphone } from "lucide-react";
+import type { Metadata } from "next";
 import HeroSlider from "@/components/HeroSlider";
 import ProductGrid from "@/components/ProductGrid";
 import Product from "@/models/Product";
 import dbConnect from "@/lib/mongodb";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "IT Hardware Supplier South Africa | Business Technology Supplier | Impact Store",
+  description:
+    "Impact Store supplies business laptops, ICT equipment, networking hardware, CCTV, access control, phones, tablets and office technology for South African companies, schools and procurement teams.",
+  keywords: [
+    "IT hardware supplier South Africa",
+    "business technology supplier South Africa",
+    "office technology supplier South Africa",
+    "ICT equipment supplier South Africa",
+    "bulk IT procurement South Africa",
+  ],
+  openGraph: {
+    title: "Impact Store | Business Technology and IT Hardware Supplier South Africa",
+    description:
+      "Source business laptops, ICT hardware, networking equipment, CCTV, access control, phones and tablets with quote support for South African organizations.",
+    url: "/",
+    siteName: "Impact Store",
+    type: "website",
+  },
+};
 
 const categories = [
   {
@@ -48,6 +70,25 @@ const categories = [
 
 const trustItems = ["Authorized Dealer", "Nationwide Delivery", "Bulk Procurement", "Business Support"];
 
+const businessAudiences = [
+  {
+    title: "SMEs and growing teams",
+    copy: "Source business laptops, desktops, accessories and mobile devices with quote-led support for refreshes and new hires.",
+  },
+  {
+    title: "Schools and training providers",
+    copy: "Plan classroom, lab and learner-device rollouts with tablets, laptops, networking and everyday technology essentials.",
+  },
+  {
+    title: "Offices and procurement teams",
+    copy: "Consolidate ICT equipment buying, bulk orders and supplier communication through one South African technology partner.",
+  },
+  {
+    title: "Security providers and facilities teams",
+    copy: "Quote CCTV, access control, time attendance and supporting IT hardware for business premises and client installations.",
+  },
+];
+
 export default async function HomePage() {
   await dbConnect();
   const featuredProducts = await Product.find({
@@ -75,9 +116,10 @@ export default async function HomePage() {
       <section className="bg-[#f5f7fb] py-16 sm:py-24">
         <div className="mx-auto max-w-[1440px] px-6">
           <div className="mx-auto mb-12 max-w-3xl text-center">
-            <h2 className="text-3xl font-semibold text-[#1f2937] sm:text-4xl">Shop by Category</h2>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#1f4f8f]">Business technology supplier South Africa</p>
+            <h2 className="mt-3 text-3xl font-semibold text-[#1f2937] sm:text-4xl">Shop IT hardware, devices and office technology</h2>
             <p className="mt-4 text-base text-slate-500">
-              From ICT hardware to mobile devices and accessories, Impact Store keeps business buying simple.
+              From ICT hardware and networking to mobile devices and accessories, Impact Store keeps business procurement simple while still letting shoppers browse and buy online.
             </p>
           </div>
 
@@ -119,11 +161,49 @@ export default async function HomePage() {
       </section>
 
       <section className="bg-white py-16 sm:py-24">
+        <div className="mx-auto grid max-w-[1440px] gap-10 px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#1f4f8f]">IT hardware supplier South Africa</p>
+            <h2 className="mt-3 text-3xl font-semibold leading-tight text-[#1f2937] sm:text-4xl">
+              Built for business buying, bulk orders and everyday ecommerce
+            </h2>
+            <p className="mt-5 text-base leading-relaxed text-slate-600">
+              Impact Store supports South African businesses with laptops, phones, tablets, networking equipment, CCTV, access control and office technology. Request a quote for procurement support, or continue shopping the product catalogue for standard online orders.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/quote?source=homepage-business-copy"
+                className="inline-flex items-center justify-center rounded-full bg-[#1f4f8f] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#173b6b]"
+              >
+                Request a Business Quote
+              </Link>
+              <Link
+                href="/products"
+                className="inline-flex items-center justify-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-[#1f2937] transition hover:border-[#fbbf24] hover:text-[#1f4f8f]"
+              >
+                Shop Products Online
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {businessAudiences.map((audience) => (
+              <div key={audience.title} className="rounded-2xl border border-slate-200 bg-[#f5f7fb] p-6">
+                <h3 className="text-lg font-semibold text-[#1f2937]">{audience.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">{audience.copy}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f5f7fb] py-16 sm:py-24">
         <div className="mx-auto max-w-[1440px] px-6">
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-3xl font-semibold text-[#1f2937] sm:text-4xl">Featured Products</h2>
-              <p className="mt-3 text-slate-500">Selected devices and hardware ready for fast quoting or checkout.</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#1f4f8f]">Browse and buy online</p>
+              <h2 className="mt-3 text-3xl font-semibold text-[#1f2937] sm:text-4xl">Featured products for work and home</h2>
+              <p className="mt-3 text-slate-500">Selected devices and hardware ready for fast quoting, procurement review, or standard ecommerce checkout.</p>
             </div>
             <Link href="/products" className="text-sm font-semibold text-[#1f4f8f] transition hover:text-[#f59e0b]">
               View all products -&gt;
@@ -140,10 +220,10 @@ export default async function HomePage() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-[#fbbf24]">Bulk procurement</p>
                 <h2 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight sm:text-4xl">
-                  Need devices for a team, school, office, or rollout?
+                  Need an IT hardware supplier for a team, school, office, or rollout?
                 </h2>
                 <p className="mt-4 max-w-2xl text-white/80">
-                  Request a quote for priority pricing, sourcing support, and rollout planning across laptops, phones, tablets, and accessories.
+                  Request a quote for priority pricing, sourcing support, and rollout planning across laptops, ICT equipment, networking, security hardware, phones, tablets, and accessories.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
