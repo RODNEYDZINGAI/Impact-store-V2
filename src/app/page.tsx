@@ -158,7 +158,7 @@ export default async function HomePage() {
                   </div>
                 ))}
                 <Link
-                  href="/contact"
+                  href="/quote?source=homepage-bulk-quote"
                   className="inline-flex items-center justify-center rounded-full bg-[#fbbf24] px-6 py-3 text-sm font-semibold text-[#1f2937] transition hover:bg-[#f59e0b]"
                 >
                   Request a Quote

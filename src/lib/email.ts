@@ -533,6 +533,9 @@ export async function sendQuoteRequestEmail({
   email,
   phone,
   company,
+  budget,
+  timeline,
+  source,
   message,
   products,
   quoteId,
@@ -541,6 +544,9 @@ export async function sendQuoteRequestEmail({
   email: string;
   phone?: string;
   company?: string;
+  budget?: string;
+  timeline?: string;
+  source?: string;
   message?: string;
   products: { name: string; quantityMin?: number; quantityMax?: number }[];
   quoteId: string;
@@ -599,6 +605,17 @@ export async function sendQuoteRequestEmail({
               ${phone ? `<div class="info-row"><span class="info-label">Phone</span> ${phone}</div>` : ""}
               ${company ? `<div class="info-row"><span class="info-label">Company</span> ${company}</div>` : ""}
             </div>
+
+            ${
+              budget || timeline || source
+                ? `<div class="section-title">Quote Context</div>
+                   <div class="info-box">
+                     ${budget ? `<div class="info-row"><span class="info-label">Budget</span> ${budget}</div>` : ""}
+                     ${timeline ? `<div class="info-row"><span class="info-label">Timeline</span> ${timeline}</div>` : ""}
+                     ${source ? `<div class="info-row"><span class="info-label">Source</span> ${source}</div>` : ""}
+                   </div>`
+                : ""
+            }
 
             <div class="section-title">Products of Interest</div>
             <table class="products-table" style="margin-bottom:24px;">

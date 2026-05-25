@@ -11,9 +11,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, company, message }: {
+    const { name, email, phone, company, message, budget, timeline, source }: {
       name?: string; email?: string; phone?: string;
-      company?: string; message?: string;
+      company?: string; message?: string; budget?: string; timeline?: string; source?: string;
     } = body;
     const safeProducts = Array.isArray(body.products) ? body.products : [];
 
@@ -38,6 +38,11 @@ export async function POST(req: NextRequest) {
 
     if (message && typeof message === "string" && message.trim().length > 2000) {
       return NextResponse.json({ error: "Message must be 2000 characters or fewer" }, { status: 400 });
+    }
+    for (const [field, value] of Object.entries({ budget, timeline, source })) {
+      if (value !== undefined && (typeof value !== "string" || value.trim().length > 250)) {
+        return NextResponse.json({ error: `${field} must be 250 characters or fewer` }, { status: 400 });
+      }
     }
 
     await dbConnect();
@@ -79,6 +84,9 @@ export async function POST(req: NextRequest) {
       email: email.trim().toLowerCase(),
       phone: phone?.trim() || undefined,
       company: company?.trim() || undefined,
+      budget: budget?.trim() || undefined,
+      timeline: timeline?.trim() || undefined,
+      source: source?.trim() || undefined,
       message: message?.trim() || undefined,
     });
 
@@ -94,6 +102,9 @@ export async function POST(req: NextRequest) {
         email: quote.email,
         phone: quote.phone,
         company: quote.company,
+        budget: quote.budget,
+        timeline: quote.timeline,
+        source: quote.source,
         message: quote.message,
         products: emailProducts,
         quoteId: quote._id.toString(),

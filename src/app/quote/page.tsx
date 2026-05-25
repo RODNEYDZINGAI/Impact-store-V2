@@ -16,6 +16,7 @@ function QuoteForm() {
 
   const prefillId = searchParams.get("product") ?? "";
   const prefillName = searchParams.get("productName") ?? "";
+  const source = searchParams.get("source") ?? "";
 
   const [products, setProducts] = useState<ProductRow[]>([
     { productId: prefillId, productName: prefillName, quantityMin: "", quantityMax: "" },
@@ -72,6 +73,7 @@ function QuoteForm() {
       company: company || undefined,
       budget: budget || undefined,
       timeline: timeline || undefined,
+      source: source || undefined,
       message,
       products: validProducts.map((p) => ({
         product: p.productId.trim(),
