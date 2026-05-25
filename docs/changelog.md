@@ -7,6 +7,7 @@ All Impact Store project changes should be documented here or in linked feature 
 ### Added
 
 - `docs/plans/2026-05-25-b2b-seo-growth-plan.md` as the working orchestration plan for repositioning Impact Store around B2B SEO and quote-led conversion while retaining B2C product traffic.
+- `docs/projects/b2b-seo-growth-project.md` as the project overview document covering strategy, target audience, keyword clusters, execution rules, Kanban status, current implementation state, next steps, and success criteria.
 - First sprint priorities: quote CTA fixes, quote metadata, homepage B2B rewrite, category SEO MVP, and QA/monitoring.
 
 ## 2026-05-16 (phase 9 — SEO crawlability)
