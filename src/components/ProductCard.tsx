@@ -3,6 +3,7 @@
 import { FileText, ShoppingCart, Tag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
+import { buildProductAltText } from "@/lib/seo";
 
 interface ProductVariant {
   price: number;
@@ -35,6 +36,7 @@ export default function ProductCard({
   slug,
   price,
   originalPrice,
+  category,
   condition,
   brand,
   images,
@@ -47,6 +49,7 @@ export default function ProductCard({
   const hasVariants = publishedVariants.length > 0;
   const fromPrice = hasVariants ? Math.min(...publishedVariants.map((v) => v.price)) : null;
   const savings = originalPrice ? originalPrice - price : 0;
+  const imageAlt = buildProductAltText({ name, brand, condition, category });
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
@@ -65,7 +68,7 @@ export default function ProductCard({
         </span>
         <div className="relative h-full w-full transition-transform duration-500 group-hover:scale-110">
           {images[0] ? (
-            <img src={images[0]} alt={name} className="h-full w-full object-cover object-center" />
+            <img src={images[0]} alt={imageAlt} className="h-full w-full object-cover object-center" />
           ) : (
             <div className="flex h-full items-center justify-center text-slate-300">
               <ShoppingCart className="h-12 w-12" />

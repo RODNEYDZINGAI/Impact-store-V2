@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import ProductGrid from "@/components/ProductGrid";
@@ -5,15 +6,84 @@ import FilterBar from "@/components/FilterBar";
 import { buildTaxonomyProductFilter, mergeMongoFilters } from "@/lib/product-filters";
 import { findTaxonomyCategory, findTaxonomySubcategory } from "@/lib/category-taxonomy";
 import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
+import { categoryProductsUrl, DEFAULT_OG_IMAGE, SITE_NAME, truncateMetaDescription } from "@/lib/seo";
+
+interface ProductSearchParams {
+  category?: string;
+  categorySlug?: string;
+  subcategory?: string;
+  condition?: string;
+  search?: string;
+}
 
 interface Props {
-  searchParams: Promise<{
-    category?: string;
-    categorySlug?: string;
-    subcategory?: string;
-    condition?: string;
-    search?: string;
-  }>;
+  searchParams: Promise<ProductSearchParams>;
+}
+
+function getCatalogTitle(params: ProductSearchParams, taxonomy: Awaited<ReturnType<typeof getCategoryTaxonomy>>) {
+  const selectedCategory = findTaxonomyCategory(taxonomy, params.categorySlug || params.category);
+  const selectedSubcategory = findTaxonomySubcategory(taxonomy, params.subcategory, selectedCategory?.slug);
+
+  return {
+    selectedCategory,
+    selectedSubcategory,
+    title: selectedSubcategory
+      ? selectedSubcategory.subcategory.name
+      : selectedCategory
+        ? selectedCategory.name
+        : params.category
+          ? params.category
+          : params.condition
+            ? `${params.condition} Products`
+            : "All Products",
+  };
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  await dbConnect();
+  const taxonomy = await getCategoryTaxonomy();
+  const { selectedCategory, selectedSubcategory, title } = getCatalogTitle(params, taxonomy);
+  const scopedTitle = title === "All Products" ? "ICT Hardware, Devices & Accessories" : `${title} Products`;
+  const description = truncateMetaDescription(
+    selectedSubcategory
+      ? `Browse ${selectedSubcategory.subcategory.name} products in ${selectedSubcategory.category.name} from Impact Store. Compare ICT hardware, devices, accessories, and security solutions for South African buyers.`
+      : selectedCategory
+        ? selectedCategory.description || `Browse ${selectedCategory.name} products from Impact Store.`
+        : params.search
+          ? `Search Impact Store product results for ${params.search}.`
+          : "Browse Impact Store ICT hardware, mobile devices, accessories, and security solutions with nationwide delivery in South Africa."
+  );
+  const canonical = selectedCategory
+    ? categoryProductsUrl(selectedCategory.slug, selectedSubcategory?.subcategory.slug)
+    : params.condition
+      ? `/products?condition=${encodeURIComponent(params.condition)}`
+      : "/products";
+  const shouldIndex = Boolean(selectedCategory || (!params.search && !params.category && !params.subcategory));
+
+  return {
+    title: scopedTitle,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title: `${scopedTitle} | ${SITE_NAME}`,
+      description,
+      url: canonical,
+      siteName: SITE_NAME,
+      images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: `${SITE_NAME} product catalogue` }],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: scopedTitle,
+      description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+    robots: {
+      index: shouldIndex,
+      follow: true,
+    },
+  };
 }
 
 export default async function ProductsPage({ searchParams }: Props) {

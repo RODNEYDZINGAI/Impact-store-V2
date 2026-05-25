@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import { buildTaxonomyProductFilter, mergeMongoFilters } from "@/lib/product-filters";
 import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
 import Product from "@/models/Product";
+import { generateProductSku, generateVariantSku } from "@/lib/sku";
 
 export async function GET(req: NextRequest) {
   try {
@@ -54,6 +55,21 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
     const body = await req.json();
+
+    // Auto-generate SKU if not provided
+    if (!body.sku || !body.sku.trim()) {
+      body.sku = await generateProductSku();
+    }
+
+    // Auto-generate variant SKUs if any are missing
+    if (Array.isArray(body.variants)) {
+      for (let i = 0; i < body.variants.length; i++) {
+        if (!body.variants[i].sku || !body.variants[i].sku.trim()) {
+          body.variants[i].sku = await generateVariantSku(body.sku, i);
+        }
+      }
+    }
+
     const product = await Product.create(body);
     return NextResponse.json(product, { status: 201 });
   } catch (error) {

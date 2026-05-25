@@ -261,10 +261,12 @@ export default function CheckoutPage() {
                   <span>R{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
-              <Button type="submit" disabled={loading} className="mt-6 w-full bg-gradient-to-r from-violet to-violet-bright text-white hover:from-violet-bright hover:to-violet shadow-lg shadow-violet/25">
-                {loading ? "Redirecting to payment..." : `Pay R${finalTotal.toLocaleString()}`}
+              <Button type="submit" disabled className="mt-6 w-full bg-gray-300 text-gray-500 cursor-not-allowed">
+                Payments Coming Soon
               </Button>
-              <p className="mt-2 text-center text-xs text-gray-400">You&apos;ll be redirected to Bob Pay to complete your payment securely.</p>
+              <p className="mt-2 text-center text-xs text-amber-600 font-medium">
+                Online payments are temporarily unavailable while we set up our payment provider. Please contact us to place an order.
+              </p>
             </div>
           </div>
         </form>

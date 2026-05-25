@@ -2,6 +2,16 @@
 
 All Impact Store project changes should be documented here or in linked feature docs under `docs/`.
 
+## 2026-05-16 (phase 9 — SEO crawlability)
+
+### Changed
+
+- Sitemap now uses the shared Impact Store base URL fallback, includes missing public pages, published product URLs, and category/subcategory catalogue URLs from the editable taxonomy.
+- Robots metadata now points to the same canonical host and explicitly allows the public catalogue, marketing, quote, recycling, and policy pages while keeping admin, API, cart, checkout, auth, profile, order, and payment surfaces disallowed.
+- Global and catalogue/product metadata now include metadataBase, canonical URLs, Open Graph/Twitter defaults, category-aware product listing metadata, and normalized absolute product image URLs for richer crawl previews.
+- Product JSON-LD now emits absolute product/image URLs, `itemCondition`, category data, offer validity, and base-URL-aware breadcrumbs.
+- Product, category, and hero imagery now use descriptive alt text/fallback wording instead of empty or generic labels.
+
 ## 2026-05-10 (phase 8 — admin light theme)
 
 ### Changed

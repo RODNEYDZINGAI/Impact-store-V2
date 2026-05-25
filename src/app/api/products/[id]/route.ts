@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
+import { generateVariantSku } from "@/lib/sku";
 
 export async function GET(
   _req: NextRequest,
@@ -35,7 +36,18 @@ export async function PUT(
     await dbConnect();
     const { id } = await params;
     const body = await req.json();
-    
+
+    // Auto-generate variant SKUs for any new variants that don't have one
+    if (Array.isArray(body.variants)) {
+      const existing = await Product.findById(id).lean();
+      const productSku = body.sku || existing?.sku || "IMS-000000";
+      for (let i = 0; i < body.variants.length; i++) {
+        if (!body.variants[i].sku || !body.variants[i].sku.trim()) {
+          body.variants[i].sku = await generateVariantSku(productSku, i);
+        }
+      }
+    }
+
     // Use $set to properly update fields including published
     const product = await Product.findByIdAndUpdate(id, { $set: body }, { returnDocument: 'after' });
     if (!product) {

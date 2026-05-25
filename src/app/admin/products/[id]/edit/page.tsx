@@ -67,13 +67,6 @@ export default function EditProductPage() {
     });
   };
 
-  const generateSku = (category: string, brand: string) => {
-    const cat = category.substring(0, 3).toUpperCase();
-    const br = brand.substring(0, 3).toUpperCase() || "XXX";
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${cat}-${br}-${rand}`;
-  };
-
   useEffect(() => {
     fetch(`/api/products/${params.id}`).then((r) => r.json()).then((p) => {
       setForm({
@@ -118,7 +111,7 @@ export default function EditProductPage() {
       .map((v) => ({
         variantId: v.variantId,
         title: v.title.trim(),
-        sku: v.sku.trim() || generateSku(form.category, form.brand),
+        sku: v.sku.trim(), // server auto-generates if empty
         price: Number(v.price),
         stock: Number(v.stock),
         condition: v.condition,
@@ -127,6 +120,7 @@ export default function EditProductPage() {
       }));
     const body = {
       ...form,
+      sku: form.sku, // preserve existing server-assigned SKU
       subtitle: form.subtitle || undefined,
       price: Number(form.price),
       originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
@@ -165,8 +159,8 @@ export default function EditProductPage() {
             <input type="text" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-slate-500">SKU</label>
-            <input type="text" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value.toUpperCase() })} className={inputClass} placeholder="e.g., LAP-DEL-A3F2" />
+            <label className="block text-sm font-medium text-slate-500">SKU <span className="text-xs text-slate-400">(auto-generated)</span></label>
+            <input type="text" value={form.sku} readOnly className={`${inputClass} cursor-not-allowed bg-slate-100`} />
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-500">Subtitle</label>
@@ -302,7 +296,7 @@ export default function EditProductPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500">SKU</label>
+                      <label className="block text-xs text-slate-500">SKU <span className="text-[10px] text-slate-400">(auto)</span></label>
                       <input
                         type="text"
                         placeholder="Auto-generated if empty"

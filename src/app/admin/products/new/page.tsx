@@ -66,13 +66,6 @@ export default function NewProductPage() {
     });
   };
 
-  const generateSku = (category: string, brand: string) => {
-    const cat = category.substring(0, 3).toUpperCase();
-    const br = brand.substring(0, 3).toUpperCase() || "XXX";
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${cat}-${br}-${rand}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -84,7 +77,7 @@ export default function NewProductPage() {
       .map((v) => ({
         variantId: v.variantId,
         title: v.title.trim(),
-        sku: v.sku.trim() || generateSku(form.category, form.brand),
+        sku: v.sku.trim(), // server will auto-generate if empty
         price: Number(v.price),
         stock: Number(v.stock),
         condition: v.condition,
@@ -93,7 +86,7 @@ export default function NewProductPage() {
       }));
     const body = {
       ...form, slug: form.slug || generateSlug(form.name),
-      sku: form.sku || generateSku(form.category, form.brand),
+      sku: form.sku, // server auto-generates if empty
       subtitle: form.subtitle || undefined,
       price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       stock: Number(form.stock), images, specs: specsObject,
@@ -121,13 +114,8 @@ export default function NewProductPage() {
             <input type="text" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputClass} />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-slate-500">SKU</label>
-            <div className="flex gap-2">
-              <input type="text" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value.toUpperCase() })} className={`${inputClass} flex-1`} placeholder="e.g., LAP-DEL-A3F2" />
-              <button type="button" onClick={() => setForm({ ...form, sku: generateSku(form.category, form.brand) })} className="mt-1 rounded-xl border border-steel/30 px-4 py-2.5 text-sm text-steel hover:bg-steel/10">
-                Generate
-              </button>
-            </div>
+            <label className="block text-sm font-medium text-slate-500">SKU <span className="text-xs text-slate-400">(auto-generated)</span></label>
+            <input type="text" value={form.sku} readOnly className={`${inputClass} cursor-not-allowed bg-slate-100`} placeholder="Auto-generated on save" />
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-500">Subtitle</label>
@@ -263,7 +251,7 @@ export default function NewProductPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500">SKU</label>
+                      <label className="block text-xs text-slate-500">SKU <span className="text-[10px] text-slate-400">(auto)</span></label>
                       <input
                         type="text"
                         placeholder="Auto-generated if empty"

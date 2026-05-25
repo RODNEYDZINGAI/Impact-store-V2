@@ -54,7 +54,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
               >
                 <img
                   src={url}
-                  alt={`${name} ${i + 1}`}
+                  alt={`${name} product thumbnail ${i + 1}`}
                   className="h-16 w-16 object-cover sm:h-20 sm:w-20"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.opacity = "0.3";
@@ -70,7 +70,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
           <div className="aspect-square w-full overflow-hidden">
             <img
               src={images[selected]}
-              alt={name}
+              alt={`${name} product image`}
               className="h-full w-full object-cover transition-transform duration-300 group-hover/main:scale-110"
               onClick={() => setLightboxOpen(true)}
               onError={(e) => {
@@ -106,7 +106,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
           >
             <img
               src={images[selected]}
-              alt={name}
+              alt={`${name} product image`}
               className="max-h-[85vh] max-w-[85vw] rounded-xl object-contain"
             />
           </div>

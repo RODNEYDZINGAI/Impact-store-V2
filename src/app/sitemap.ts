@@ -1,86 +1,74 @@
 import { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
+import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
+import { categoryProductsUrl, getBaseUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://impactholdings.co.za";
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static public pages
+  const baseUrl = getBaseUrl();
+  const now = new Date();
+
   const staticPages = [
-    {
-      url: `${BASE_URL}/`,
-      lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 1.0,
-    },
-    {
-      url: `${BASE_URL}/products`,
-      lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/contact`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/tap`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/mdm`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/privacy-policy`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/terms-of-service`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/shipping-policy`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/refund-policy`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    },
-  ];
+    { path: "/", changeFrequency: "daily" as const, priority: 1.0 },
+    { path: "/products", changeFrequency: "daily" as const, priority: 0.9 },
+    { path: "/about", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/contact", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/quote", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/recycling", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/tap", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/mdm", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/privacy-policy", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/terms-of-service", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/shipping-policy", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/refund-policy", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/laybuy-policy", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/warranty-policy", changeFrequency: "monthly" as const, priority: 0.5 },
+  ].map((page) => ({
+    url: `${baseUrl}${page.path}`,
+    lastModified: now,
+    changeFrequency: page.changeFrequency,
+    priority: page.priority,
+  }));
 
   let products: { slug: string; updatedAt?: Date }[] = [];
+  let categories: Awaited<ReturnType<typeof getCategoryTaxonomy>> = [];
 
   try {
     await dbConnect();
-    products = await Product.find({ published: true }).select("slug updatedAt").lean();
+    const [productResults, taxonomyResults] = await Promise.all([
+      Product.find({ published: true }).select("slug updatedAt").lean(),
+      getCategoryTaxonomy(),
+    ]);
+    products = productResults;
+    categories = taxonomyResults;
   } catch {
     products = [];
+    categories = [];
   }
 
-  // Dynamic product pages
+  const categoryPages = categories.flatMap((category) => [
+    {
+      url: `${baseUrl}${categoryProductsUrl(category.slug)}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    },
+    ...category.subcategories.map((subcategory) => ({
+      url: `${baseUrl}${categoryProductsUrl(category.slug, subcategory.slug)}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
+  ]);
+
   const productPages = products.map((product) => ({
-    url: `${BASE_URL}/products/${product.slug}`,
-    lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
+    url: `${baseUrl}/products/${product.slug}`,
+    lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
 
-  return [...staticPages, ...productPages];
+  return [...staticPages, ...categoryPages, ...productPages];
 }

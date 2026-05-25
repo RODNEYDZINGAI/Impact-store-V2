@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { uploadToR2 } from "@/lib/r2";
+import { uploadToR2, getR2KeyFromUrl } from "@/lib/r2";
+import dbConnect from "@/lib/mongodb";
+import Product from "@/models/Product";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -24,9 +26,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
+    // Count existing images for this slug in R2 to continue numbering
+    await dbConnect();
+    const existingProducts = await Product.find({ slug }).lean();
+    const existingImageCount = existingProducts.reduce(
+      (acc, p) => acc + (p.images?.length || 0),
+      0
+    );
+
     const urls: string[] = [];
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
       if (!ALLOWED_TYPES.includes(file.type)) {
         return NextResponse.json(
           { error: `Invalid file type: ${file.type}. Allowed: JPG, PNG, WebP` },
@@ -41,12 +53,11 @@ export async function POST(req: NextRequest) {
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      const ext = file.name.split(".").pop() || "jpg";
-      const safeName = file.name
-        .replace(/\.[^.]+$/, "")
-        .replace(/[^a-zA-Z0-9-]/g, "_")
-        .toLowerCase();
-      const key = `products/${slug}/${Date.now()}-${safeName}.${ext}`;
+      const ext = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
+
+      // Sequential numbering: 001, 002, 003…  — keeps images ordered
+      const number = String(existingImageCount + i + 1).padStart(3, "0");
+      const key = `products/${slug}/${number}.${ext}`;
 
       const url = await uploadToR2(buffer, key, file.type);
       urls.push(url);

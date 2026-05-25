@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, Clock, Truck } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
@@ -36,10 +36,6 @@ export default function ProductDetailActions({ product }: { product: ProductForA
     publishedVariants.length === 1 ? publishedVariants[0] : null
   );
   const [quantity, setQuantity] = useState(1);
-
-  useEffect(() => {
-    setQuantity(1);
-  }, [selectedVariant?.variantId]);
 
   const displayPrice = selectedVariant?.price ?? product.price;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product.originalPrice;
@@ -79,7 +75,10 @@ export default function ProductDetailActions({ product }: { product: ProductForA
             {publishedVariants.map((variant) => (
               <button
                 key={variant.variantId}
-                onClick={() => setSelectedVariant(variant)}
+                onClick={() => {
+                  setSelectedVariant(variant);
+                  setQuantity(1);
+                }}
                 disabled={variant.stock <= 0}
                 className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
                   selectedVariant?.variantId === variant.variantId

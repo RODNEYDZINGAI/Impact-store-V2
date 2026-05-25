@@ -1,8 +1,9 @@
 import { MetadataRoute } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://impactholdings.co.za";
+import { getBaseUrl } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = getBaseUrl();
+
   return {
     rules: [
       {
@@ -11,13 +12,18 @@ export default function robots(): MetadataRoute.Robots {
           "/",
           "/products",
           "/products/*",
+          "/about",
           "/contact",
+          "/quote",
+          "/recycling",
           "/tap",
           "/mdm",
           "/privacy-policy",
           "/terms-of-service",
           "/shipping-policy",
           "/refund-policy",
+          "/laybuy-policy",
+          "/warranty-policy",
         ],
         disallow: [
           "/admin",
@@ -38,6 +44,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

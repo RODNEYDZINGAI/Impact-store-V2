@@ -94,7 +94,7 @@ export default async function HomePage() {
                   <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
                     <img
                       src={category.image}
-                      alt=""
+                      alt={`${category.name} technology category at Impact Store`}
                       className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 shadow-sm">
