@@ -55,7 +55,7 @@ export default function Footer() {
             <h3 className="text-base font-semibold">Customer Service</h3>
             <ul className="mt-4 space-y-2 text-sm text-white/80">
               {[
-                ["Request a Quote", "/contact"],
+                ["Request a Quote", "/quote?source=footer"],
                 ["Contact Us", "/contact"],
                 ["Shipping Information", "/shipping-policy"],
                 ["Returns Policy", "/refund-policy"],

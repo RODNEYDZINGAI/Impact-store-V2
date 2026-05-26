@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
-import { categoryProductsUrl, getBaseUrl } from "@/lib/seo";
+import { categoryProductsUrlXml, getBaseUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -50,13 +50,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categoryPages = categories.flatMap((category) => [
     {
-      url: `${baseUrl}${categoryProductsUrl(category.slug)}`,
+      url: `${baseUrl}${categoryProductsUrlXml(category.slug)}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.75,
     },
     ...category.subcategories.map((subcategory) => ({
-      url: `${baseUrl}${categoryProductsUrl(category.slug, subcategory.slug)}`,
+      url: `${baseUrl}${categoryProductsUrlXml(category.slug, subcategory.slug)}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.7,

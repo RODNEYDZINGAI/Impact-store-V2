@@ -57,7 +57,7 @@ export default function Navbar() {
               info@impactholdings.co.za
             </a>
           </div>
-          <Link href="/contact" className="font-semibold text-[#fbbf24] transition hover:text-[#f59e0b]">
+          <Link href="/quote?source=top-bar-bulk-orders" className="font-semibold text-[#fbbf24] transition hover:text-[#f59e0b]">
             Bulk orders? Get up to 25% off!
           </Link>
         </div>
@@ -128,7 +128,7 @@ export default function Navbar() {
               <Search className="h-4 w-4" />
             </Link>
             <Link
-              href="/quote"
+              href="/quote?source=navbar"
               className="hidden rounded-full bg-[#fbbf24] px-5 py-2 text-sm font-semibold text-[#1f2937] transition hover:bg-[#f59e0b] lg:inline-flex"
             >
               Request Quote

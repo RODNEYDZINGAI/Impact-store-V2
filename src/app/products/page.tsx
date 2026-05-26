@@ -7,6 +7,7 @@ import { buildTaxonomyProductFilter, mergeMongoFilters } from "@/lib/product-fil
 import { findTaxonomyCategory, findTaxonomySubcategory } from "@/lib/category-taxonomy";
 import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
 import { categoryProductsUrl, DEFAULT_OG_IMAGE, SITE_NAME, truncateMetaDescription } from "@/lib/seo";
+import { buildFAQPageJsonLd, categorySEOContent, getCategorySEOContent, getCategorySEOMetaDescription } from "@/lib/category-seo-content";
 
 interface ProductSearchParams {
   category?: string;
@@ -39,34 +40,51 @@ function getCatalogTitle(params: ProductSearchParams, taxonomy: Awaited<ReturnTy
   };
 }
 
+function getCategoryKeyForSEO(
+  params: ProductSearchParams,
+  selectedCategory: ReturnType<typeof findTaxonomyCategory>,
+) {
+  if (params.category && categorySEOContent[params.category]) return params.category;
+  if (selectedCategory?.name && categorySEOContent[selectedCategory.name]) return selectedCategory.name;
+  return undefined;
+}
+
+function hasFilterPermutation(params: ProductSearchParams) {
+  return Boolean(params.search || params.condition);
+}
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
   await dbConnect();
   const taxonomy = await getCategoryTaxonomy();
   const { selectedCategory, selectedSubcategory, title } = getCatalogTitle(params, taxonomy);
-  const scopedTitle = title === "All Products" ? "ICT Hardware, Devices & Accessories" : `${title} Products`;
+  const categoryKey = getCategoryKeyForSEO(params, selectedCategory);
+  const seoContent = categoryKey && !hasFilterPermutation(params) ? getCategorySEOContent(categoryKey) : undefined;
+  const scopedTitle = seoContent?.seoTitle || (title === "All Products" ? "ICT Hardware, Devices & Accessories" : `${title} Products`);
   const description = truncateMetaDescription(
-    selectedSubcategory
-      ? `Browse ${selectedSubcategory.subcategory.name} products in ${selectedSubcategory.category.name} from Impact Store. Compare ICT hardware, devices, accessories, and security solutions for South African buyers.`
-      : selectedCategory
-        ? selectedCategory.description || `Browse ${selectedCategory.name} products from Impact Store.`
-        : params.search
-          ? `Search Impact Store product results for ${params.search}.`
-          : "Browse Impact Store ICT hardware, mobile devices, accessories, and security solutions with nationwide delivery in South Africa."
+    seoContent
+      ? getCategorySEOMetaDescription(seoContent)
+      : selectedSubcategory
+        ? `Browse ${selectedSubcategory.subcategory.name} products in ${selectedSubcategory.category.name} from Impact Store. Compare ICT hardware, devices, accessories, and security solutions for South African buyers.`
+        : selectedCategory
+          ? selectedCategory.description || `Browse ${selectedCategory.name} products from Impact Store.`
+          : params.search
+            ? `Search Impact Store product results for ${params.search}.`
+            : "Browse Impact Store ICT hardware, mobile devices, accessories, and security solutions with nationwide delivery in South Africa."
   );
   const canonical = selectedCategory
     ? categoryProductsUrl(selectedCategory.slug, selectedSubcategory?.subcategory.slug)
     : params.condition
       ? `/products?condition=${encodeURIComponent(params.condition)}`
       : "/products";
-  const shouldIndex = Boolean(selectedCategory || (!params.search && !params.category && !params.subcategory));
+  const shouldIndex = Boolean(!hasFilterPermutation(params) && (selectedCategory || (!params.category && !params.subcategory)));
 
   return {
     title: scopedTitle,
     description,
     alternates: { canonical },
     openGraph: {
-      title: `${scopedTitle} | ${SITE_NAME}`,
+      title: seoContent?.seoTitle || `${scopedTitle} | ${SITE_NAME}`,
       description,
       url: canonical,
       siteName: SITE_NAME,
@@ -122,6 +140,9 @@ export default async function ProductsPage({ searchParams }: Props) {
           ? `${params.condition} Products`
           : "All Products";
 
+  const categoryKey = getCategoryKeyForSEO(params, selectedCategory);
+  const seoContent = categoryKey && !hasFilterPermutation(params) ? getCategorySEOContent(categoryKey) : undefined;
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] pb-16">
       <div className="bg-[#0f172a] text-white">
@@ -129,7 +150,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           <p className="text-xs font-semibold uppercase tracking-widest text-[#fbbf24]">Catalog</p>
           <h1 className="mt-2 text-4xl font-semibold tracking-normal">{title}</h1>
           <p className="mt-3 max-w-2xl text-white/70">
-            Browse Impact Store inventory by category, subcategory, condition, and search terms for procurement and everyday technology needs.
+            {seoContent?.intro || "Browse Impact Store inventory by category, subcategory, condition, and search terms for procurement and everyday technology needs."}
           </p>
         </div>
       </div>
@@ -150,6 +171,44 @@ export default async function ProductsPage({ searchParams }: Props) {
         <div className="mt-8">
           <ProductGrid products={JSON.parse(JSON.stringify(products))} />
         </div>
+
+        {seoContent ? (
+          <section className="mt-12 space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#f7941d]">{seoContent.eyebrow}</p>
+              <h2 className="mt-2 text-2xl font-semibold text-[#1f2937]">{seoContent.seoTitle.replace(` | ${SITE_NAME}`, "")}</h2>
+            </div>
+
+            <p className="max-w-4xl text-sm leading-relaxed text-slate-600 md:text-base">
+              {seoContent.description}
+            </p>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {seoContent.benefits.map((benefit) => (
+                <div key={benefit} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                  {benefit}
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-[#0f172a]">Frequently Asked Questions</h3>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                {seoContent.faqs.map((faq) => (
+                  <article key={faq.question} className="rounded-2xl border border-slate-200 bg-[#f5f7fb] p-6">
+                    <h4 className="text-sm font-semibold text-[#0f172a]">{faq.question}</h4>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-500">{faq.answer}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFAQPageJsonLd(seoContent)) }}
+            />
+          </section>
+        ) : null}
       </div>
     </div>
   );

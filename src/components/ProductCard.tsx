@@ -50,6 +50,11 @@ export default function ProductCard({
   const fromPrice = hasVariants ? Math.min(...publishedVariants.map((v) => v.price)) : null;
   const savings = originalPrice ? originalPrice - price : 0;
   const imageAlt = buildProductAltText({ name, brand, condition, category });
+  const quoteHref = `/quote?${new URLSearchParams({
+    product: _id,
+    productName: name,
+    source: "product-card",
+  }).toString()}`;
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
@@ -116,7 +121,7 @@ export default function ProductCard({
             </button>
           )}
           <Link
-            href="/contact"
+            href={quoteHref}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-200 px-4 py-2 text-xs font-semibold text-[#1f2937] transition hover:bg-slate-50"
           >
             <FileText className="h-4 w-4" />

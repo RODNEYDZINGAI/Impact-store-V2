@@ -1,5 +1,12 @@
-import { CheckCircle2, Lock, MonitorSmartphone, ShieldCheck, Smartphone, UsersRound } from "lucide-react";
+import { ArrowRight, CheckCircle2, Lock, MonitorSmartphone, ShieldCheck, Smartphone, UsersRound } from "lucide-react";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Mobile Device Management — Business Device Deployment & Security | Impact Store",
+  description: "Impact Store provides mobile device management support for businesses deploying phones, tablets, and laptops. Device enrolment, policy control, and rollout planning for South African teams.",
+  keywords: ["mobile device management South Africa", "MDM solutions", "business device management", "device enrolment and security"],
+};
 
 const features = [
   {
@@ -96,6 +103,16 @@ export default function MdmPage() {
             })}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-[1440px] px-6 pb-20">
+        <Link
+          href="/tap"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-sm font-semibold text-[#1f4f8f] shadow-sm transition hover:border-[#1f4f8f]/40 hover:bg-slate-50"
+        >
+          <span>Need bulk procurement? See our Technology Access Program.</span>
+          <ArrowRight className="h-4 w-4 shrink-0" />
+        </Link>
       </section>
     </div>
   );
