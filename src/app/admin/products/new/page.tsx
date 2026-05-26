@@ -32,7 +32,7 @@ export default function NewProductPage() {
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [form, setForm] = useState({
     name: "", slug: "", sku: "", subtitle: "", description: "", price: "", originalPrice: "",
-    category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
+    sourceUrl: "", category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
   });
 
   const addSpec = () => setSpecs([...specs, { key: "", value: "" }]);
@@ -88,6 +88,7 @@ export default function NewProductPage() {
       ...form, slug: form.slug || generateSlug(form.name),
       sku: form.sku, // server auto-generates if empty
       subtitle: form.subtitle || undefined,
+      sourceUrl: form.sourceUrl.trim() || undefined,
       price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       stock: Number(form.stock), images, specs: specsObject,
       variants: serializedVariants.length > 0 ? serializedVariants : undefined,
@@ -120,6 +121,10 @@ export default function NewProductPage() {
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-500">Subtitle</label>
             <input type="text" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className={inputClass} placeholder="Short tagline shown under product name" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-slate-500">Source URL</label>
+            <input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} className={inputClass} placeholder="Supplier or product source link" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-500">Brand</label>

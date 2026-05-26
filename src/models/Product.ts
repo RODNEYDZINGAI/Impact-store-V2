@@ -18,6 +18,7 @@ export interface IProduct extends Document {
   slug: string;
   sku: string;
   subtitle?: string;
+  sourceUrl?: string;
   description: string;
   price: number;
   originalPrice?: number;
@@ -58,6 +59,7 @@ const ProductSchema = new Schema<IProduct>(
     slug: { type: String, required: true, unique: true },
     sku: { type: String, unique: true, sparse: true },
     subtitle: { type: String },
+    sourceUrl: { type: String, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
     originalPrice: { type: Number },

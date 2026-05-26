@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { generateVariantSku } from "@/lib/sku";
+import { stripProductSourceUrls } from "@/lib/product-response";
 
 export async function GET(
   _req: NextRequest,
@@ -12,11 +13,13 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await params;
-    const product = await Product.findById(id);
+    const session = await getServerSession(authOptions);
+    const product = await Product.findById(id).lean();
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    return NextResponse.json(product);
+    const isAdmin = session?.user.role === "admin";
+    return NextResponse.json(isAdmin ? product : stripProductSourceUrls(product));
   } catch (error) {
     console.error("Product GET error:", error);
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });

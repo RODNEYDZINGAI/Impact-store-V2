@@ -6,6 +6,7 @@ import { buildTaxonomyProductFilter, mergeMongoFilters } from "@/lib/product-fil
 import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
 import Product from "@/models/Product";
 import { generateProductSku, generateVariantSku } from "@/lib/sku";
+import { stripProductSourceUrls } from "@/lib/product-response";
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,8 +39,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const products = await Product.find(mergeMongoFilters(...filters)).sort({ createdAt: -1 });
-    return NextResponse.json(products);
+    const session = await getServerSession(authOptions);
+    const products = await Product.find(mergeMongoFilters(...filters)).sort({ createdAt: -1 }).lean();
+    const isAdmin = session?.user.role === "admin";
+    return NextResponse.json(isAdmin ? products : stripProductSourceUrls(products));
   } catch (error) {
     console.error("Products GET error:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });

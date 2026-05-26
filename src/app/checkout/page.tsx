@@ -6,10 +6,18 @@ import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+type PaymentMethod = "bobpay" | "payfast";
+
+const paymentMethodLabels: Record<PaymentMethod, string> = {
+  bobpay: "BobPay",
+  payfast: "PayFast",
+};
+
 export default function CheckoutPage() {
   const { items, total } = useCart();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bobpay");
   const [form, setForm] = useState({
     fullName: "", address: "", city: "", province: "", postalCode: "", phone: "",
   });
@@ -57,11 +65,12 @@ export default function CheckoutPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/payments/bobpay", {
+      const selectedPaymentLabel = paymentMethodLabels[paymentMethod];
+      const res = await fetch(`/api/payments/${paymentMethod}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ product: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
+          items: items.map((i) => ({ product: i._id, variantId: i.variantId, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
           shippingAddress: form,
           total: finalTotal,
           referralCode: referralValid ? referralCode : undefined,
@@ -73,7 +82,7 @@ export default function CheckoutPage() {
       if (res.ok && data.paymentUrl) {
         window.location.href = data.paymentUrl;
       } else {
-        alert(data.error || "Failed to initiate payment.");
+        alert(data.error || `Failed to initiate ${selectedPaymentLabel} payment.`);
       }
     } catch { alert("Something went wrong."); }
     finally { setLoading(false); }
@@ -261,12 +270,38 @@ export default function CheckoutPage() {
                   <span>R{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-900">Payment Method</h3>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  {(["bobpay", "payfast"] as PaymentMethod[]).map((method) => {
+                    const selected = paymentMethod === method;
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPaymentMethod(method)}
+                        className={`rounded-xl border px-4 py-3 text-left transition ${
+                          selected
+                            ? "border-steel bg-steel/10 text-steel"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-steel/60"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        <span className="block text-sm font-semibold">{paymentMethodLabels[method]}</span>
+                        <span className="mt-1 block text-xs text-gray-500">Secure online payment</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <Button
                 type="submit"
                 disabled={loading}
                 className="mt-6 w-full bg-gradient-to-r from-royal to-steel text-white shadow-lg shadow-royal/25 hover:from-steel hover:to-royal disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loading ? "Initiating Payment..." : "Pay with BobPay"}
+                {loading
+                  ? `Initiating ${paymentMethodLabels[paymentMethod]}...`
+                  : `Pay with ${paymentMethodLabels[paymentMethod]}`}
               </Button>
             </div>
           </div>
