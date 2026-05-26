@@ -89,6 +89,28 @@ const businessAudiences = [
   },
 ];
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Impact Store",
+  url: "https://impactstore.co.za",
+  logo: "https://impactstore.co.za/impact/impact-logo.svg",
+  description: "South African ICT hardware and business technology supplier",
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "sales",
+    availableLanguage: "English",
+  },
+  sameAs: [],
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Impact Store",
+  url: "https://impactstore.co.za",
+};
+
 export default async function HomePage() {
   await dbConnect();
   const featuredProducts = await Product.find({
@@ -99,8 +121,11 @@ export default async function HomePage() {
     .lean();
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb]">
-      <HeroSlider />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <div className="min-h-screen bg-[#f5f7fb]">
+        <HeroSlider />
 
       <section className="bg-white">
         <div className="mx-auto grid max-w-[1440px] gap-4 px-6 py-6 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
@@ -248,6 +273,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
