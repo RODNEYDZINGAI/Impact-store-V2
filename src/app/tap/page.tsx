@@ -1,5 +1,12 @@
 import { ArrowRight, BadgePercent, Clock3, PackageCheck, RefreshCw, Truck } from "lucide-react";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Technology Access Program (TAP) — Priority Device Procurement | Impact Store",
+  description: "Impact Store TAP helps businesses, schools, and teams procure laptops, phones, tablets, and ICT hardware in bulk with priority pricing, lifecycle planning, and fast fulfilment across South Africa.",
+  keywords: ["technology procurement South Africa", "bulk device procurement", "bulk laptops phones for business", "device rollout planning"],
+};
 
 const benefits = [
   {
@@ -87,6 +94,16 @@ export default function TapPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-[1440px] px-6 pb-20">
+        <Link
+          href="/mdm"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-sm font-semibold text-[#1f4f8f] shadow-sm transition hover:border-[#1f4f8f]/40 hover:bg-slate-50"
+        >
+          <span>Need device management? See our MDM support.</span>
+          <ArrowRight className="h-4 w-4 shrink-0" />
+        </Link>
       </section>
     </div>
   );
