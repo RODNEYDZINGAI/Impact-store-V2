@@ -39,5 +39,13 @@ export function truncateMetaDescription(description: string, maxLength = 160) {
 export function categoryProductsUrl(categorySlug: string, subcategorySlug?: string) {
   const params = new URLSearchParams({ categorySlug });
   if (subcategorySlug) params.set("subcategory", subcategorySlug);
+  // URLSearchParams.toString() uses & which is fine for HTTP but
+  // must be &amp; in XML contexts (sitemap). Return raw here —
+  // the sitemap consumer must XML-encode.
   return `/products?${params.toString()}`;
+}
+
+/** XML-safe variant of categoryProductsUrl for sitemap use. */
+export function categoryProductsUrlXml(categorySlug: string, subcategorySlug?: string) {
+  return categoryProductsUrl(categorySlug, subcategorySlug).replace(/&/g, "&amp;");
 }
