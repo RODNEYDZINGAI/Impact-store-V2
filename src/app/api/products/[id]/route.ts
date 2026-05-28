@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { generateVariantSku } from "@/lib/sku";
 import { stripProductSourceUrls } from "@/lib/product-response";
+import { validateProductSourceUrl } from "@/lib/product-source-url";
 
 export async function GET(
   _req: NextRequest,
@@ -39,6 +40,21 @@ export async function PUT(
     await dbConnect();
     const { id } = await params;
     const body = await req.json();
+    let shouldUnsetSourceUrl = false;
+    if (Object.prototype.hasOwnProperty.call(body, "sourceUrl")) {
+      try {
+        body.sourceUrl = validateProductSourceUrl(body.sourceUrl);
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : "Invalid source URL" },
+          { status: 400 }
+        );
+      }
+      if (body.sourceUrl === undefined) {
+        delete body.sourceUrl;
+        shouldUnsetSourceUrl = true;
+      }
+    }
 
     // Auto-generate variant SKUs for any new variants that don't have one
     if (Array.isArray(body.variants)) {
@@ -52,7 +68,13 @@ export async function PUT(
     }
 
     // Use $set to properly update fields including published
-    const product = await Product.findByIdAndUpdate(id, { $set: body }, { returnDocument: 'after' });
+    const update = shouldUnsetSourceUrl
+      ? { $set: body, $unset: { sourceUrl: "" } }
+      : { $set: body };
+    const product = await Product.findByIdAndUpdate(id, update, {
+      returnDocument: "after",
+      runValidators: true,
+    });
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }

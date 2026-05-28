@@ -7,6 +7,7 @@ import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
 import Product from "@/models/Product";
 import { generateProductSku, generateVariantSku } from "@/lib/sku";
 import { stripProductSourceUrls } from "@/lib/product-response";
+import { validateProductSourceUrl } from "@/lib/product-source-url";
 
 export async function GET(req: NextRequest) {
   try {
@@ -58,6 +59,14 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
     const body = await req.json();
+    try {
+      body.sourceUrl = validateProductSourceUrl(body.sourceUrl);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Invalid source URL" },
+        { status: 400 }
+      );
+    }
 
     // Auto-generate SKU if not provided
     if (!body.sku || !body.sku.trim()) {

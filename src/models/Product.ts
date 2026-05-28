@@ -1,5 +1,14 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export interface IProductVariant {
   variantId: string;
   sku: string;
@@ -59,7 +68,14 @@ const ProductSchema = new Schema<IProduct>(
     slug: { type: String, required: true, unique: true },
     sku: { type: String, unique: true, sparse: true },
     subtitle: { type: String },
-    sourceUrl: { type: String, trim: true },
+    sourceUrl: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: (value?: string) => !value || isValidHttpUrl(value),
+        message: "Source URL must be a valid HTTP or HTTPS URL",
+      },
+    },
     description: { type: String, required: true },
     price: { type: Number, required: true },
     originalPrice: { type: Number },
