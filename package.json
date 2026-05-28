@@ -9,6 +9,7 @@
     "lint": "eslint",
     "verify:pricing": "tsx scripts/verify-pricing.ts",
     "verify:promo-engine": "tsx scripts/verify-promo-engine.ts",
+    "verify:promotions": "tsx scripts/verify-promotions.ts",
     "verify:wishlist": "node scripts/verify-wishlist-capability.mjs",
     "seed": "npx tsx src/lib/seed.ts"
   },
