@@ -13,6 +13,7 @@ import {
   calculateCheckoutPricing,
   CheckoutPricingError,
 } from "@/lib/checkout-pricing";
+import { customerAddressFromShippingAddress } from "@/lib/customer-address";
 
 export async function POST(req: NextRequest) {
   try {
@@ -116,6 +117,13 @@ export async function POST(req: NextRequest) {
       couponCode: pricing.couponCode,
     });
     await order.save();
+
+    const customerAddress = customerAddressFromShippingAddress(body.shippingAddress);
+    if (customerAddress) {
+      await User.findByIdAndUpdate(session.user.id, {
+        $set: { address: customerAddress },
+      });
+    }
 
     const orderId = String(order._id);
 

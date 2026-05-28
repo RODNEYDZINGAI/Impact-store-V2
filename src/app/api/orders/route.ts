@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/Order";
 import "@/models/Product";
+import User from "@/models/User";
+import { customerAddressFromShippingAddress } from "@/lib/customer-address";
 
 export async function GET() {
   try {
@@ -43,6 +45,13 @@ export async function POST(req: NextRequest) {
       user: session.user.id,
       status: "pending",
     });
+
+    const customerAddress = customerAddressFromShippingAddress(body.shippingAddress);
+    if (customerAddress) {
+      await User.findByIdAndUpdate(session.user.id, {
+        $set: { address: customerAddress },
+      });
+    }
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

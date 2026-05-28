@@ -1,10 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { checkoutFormFromCustomerAddress } from "@/lib/customer-address";
+
+interface CustomerAddress {
+  street?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+interface UserProfileResponse {
+  name?: string;
+  address?: CustomerAddress;
+}
 
 type PaymentMethod = "bobpay" | "payfast";
 
@@ -33,6 +47,43 @@ export default function CheckoutPage() {
   const SHIPPING_COST = 99;
   const discount = referralValid ? Math.round(total * 0.05) : 0;
   const finalTotal = total + SHIPPING_COST - discount;
+
+  useEffect(() => {
+    if (!session) return;
+
+    let cancelled = false;
+
+    fetch("/api/user")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user: UserProfileResponse | null) => {
+        if (cancelled || !user) return;
+
+        const savedForm = checkoutFormFromCustomerAddress(
+          user.address,
+          user.name || session.user?.name || ""
+        );
+
+        if (savedForm) {
+          setForm(savedForm);
+        } else if (user.name || session.user?.name) {
+          setForm((prev) => ({
+            ...prev,
+            fullName: prev.fullName || user.name || session.user?.name || "",
+          }));
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setForm((prev) => ({
+          ...prev,
+          fullName: prev.fullName || session.user?.name || "",
+        }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   if (items.length === 0) {
     return (
