@@ -125,6 +125,7 @@ export default function NewProductPage() {
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-500">Source URL</label>
             <input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} className={inputClass} placeholder="Supplier or product source link" />
+            <p className="mt-1 text-xs text-slate-500">Stored for admins only; must start with http:// or https://.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-500">Brand</label>
