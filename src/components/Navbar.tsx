@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 const productLinks = [
@@ -78,8 +79,8 @@ export default function Navbar() {
             </button>
 
             <Link href="/" className="flex items-center gap-2 text-slate-900">
-              <img src="/impact/impact-logo.svg" alt="Impact Store" className="h-10 w-10 sm:hidden" />
-              <img src="/impact/impact-logo-lockup.svg" alt="Impact Store" className="hidden h-10 w-auto sm:block" />
+              <Image src="/impact/impact-logo.svg" alt="Impact Store" width={40} height={40} className="h-10 w-10 sm:hidden" />
+              <Image src="/impact/impact-logo-lockup.svg" alt="Impact Store" width={160} height={40} className="hidden h-10 w-auto sm:block" />
             </Link>
           </div>
 

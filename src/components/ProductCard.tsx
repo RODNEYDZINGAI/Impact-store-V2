@@ -3,6 +3,7 @@
 import { FileText, ShoppingCart, Tag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import WishlistButton from "@/components/WishlistButton";
+import Image from "next/image";
 import Link from "next/link";
 import { buildProductAltText } from "@/lib/seo";
 
@@ -76,7 +77,7 @@ export default function ProductCard({
           </span>
           <div className="relative h-full w-full transition-transform duration-500 group-hover:scale-110">
             {images[0] ? (
-              <img src={images[0]} alt={imageAlt} className="h-full w-full object-cover object-center" />
+              <Image src={images[0]} alt={imageAlt} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover object-center" />
             ) : (
               <div className="flex h-full items-center justify-center text-slate-300">
                 <ShoppingCart className="h-12 w-12" />

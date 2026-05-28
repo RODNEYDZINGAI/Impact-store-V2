@@ -6,6 +6,7 @@ import HeroSlider from "@/components/HeroSlider";
 import ProductGrid from "@/components/ProductGrid";
 import Product from "@/models/Product";
 import dbConnect from "@/lib/mongodb";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -160,10 +161,12 @@ export default async function HomePage() {
                   className="group relative overflow-hidden rounded-2xl border-2 border-transparent bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#fbbf24] hover:shadow-xl"
                 >
                   <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
-                    <img
+                    <Image
                       src={category.image}
                       alt={`${category.name} technology category at Impact Store`}
-                      className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 shadow-sm">
                       <Icon className="h-5 w-5 text-[#1f4f8f]" />
