@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, Clock, Truck } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
+import WishlistButton from "@/components/WishlistButton";
 
 interface ProductVariant {
   variantId: string;
@@ -20,10 +21,14 @@ interface ProductVariant {
 interface ProductForActions {
   _id: string;
   name: string;
+  slug: string;
+  subtitle?: string;
   price: number;
   originalPrice?: number;
+  category: string;
   images: string[];
   condition: string;
+  brand: string;
   stock: number;
   variants?: ProductVariant[];
 }
@@ -43,6 +48,18 @@ export default function ProductDetailActions({ product }: { product: ProductForA
   const savings = displayOriginalPrice ? displayOriginalPrice - displayPrice : 0;
   const isLowStock = displayStock > 0 && displayStock <= 5;
   const showPriceDetails = !hasVariants || !!selectedVariant;
+  const wishlistProduct = {
+    _id: product._id,
+    name: product.name,
+    slug: product.slug,
+    price: displayPrice,
+    originalPrice: displayOriginalPrice,
+    category: product.category,
+    condition: selectedVariant?.condition ?? product.condition,
+    brand: product.brand,
+    images: selectedVariant?.images?.length ? selectedVariant.images : product.images,
+    subtitle: product.subtitle,
+  };
 
   return (
     <div>
@@ -144,7 +161,10 @@ export default function ProductDetailActions({ product }: { product: ProductForA
         </div>
       )}
 
-      <AddToCartButton product={product} selectedVariant={selectedVariant} quantity={quantity} />
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+        <AddToCartButton product={product} selectedVariant={selectedVariant} quantity={quantity} />
+        <WishlistButton product={wishlistProduct} className="w-full rounded-full px-6 py-3 sm:w-auto" />
+      </div>
 
       {/* Delivery estimate */}
       <div className="mt-4 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">

@@ -2,6 +2,7 @@
 
 import { FileText, ShoppingCart, Tag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import WishlistButton from "@/components/WishlistButton";
 import Link from "next/link";
 import { buildProductAltText } from "@/lib/seo";
 
@@ -55,32 +56,40 @@ export default function ProductCard({
     productName: name,
     source: "product-card",
   }).toString()}`;
+  const wishlistProduct = { _id, name, slug, price, originalPrice, category, condition, brand, images, subtitle };
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <Link href={`/products/${slug}`} className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {!hasVariants && savings > 0 && (
-          <span className="absolute left-4 top-4 z-10 rounded-full bg-[#fbbf24] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#1f2937] shadow-sm">
-            Save R{savings.toLocaleString()}
-          </span>
-        )}
-        <span
-          className={`absolute right-4 top-4 z-10 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest shadow-sm ${
-            conditionStyles[condition] || conditionStyles.Used
-          }`}
-        >
-          {condition}
-        </span>
-        <div className="relative h-full w-full transition-transform duration-500 group-hover:scale-110">
-          {images[0] ? (
-            <img src={images[0]} alt={imageAlt} className="h-full w-full object-cover object-center" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-slate-300">
-              <ShoppingCart className="h-12 w-12" />
-            </div>
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        <Link href={`/products/${slug}`} className="block h-full w-full">
+          {!hasVariants && savings > 0 && (
+            <span className="absolute left-4 top-4 z-10 rounded-full bg-[#fbbf24] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#1f2937] shadow-sm">
+              Save R{savings.toLocaleString()}
+            </span>
           )}
-        </div>
-      </Link>
+          <span
+            className={`absolute right-4 top-4 z-10 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest shadow-sm ${
+              conditionStyles[condition] || conditionStyles.Used
+            }`}
+          >
+            {condition}
+          </span>
+          <div className="relative h-full w-full transition-transform duration-500 group-hover:scale-110">
+            {images[0] ? (
+              <img src={images[0]} alt={imageAlt} className="h-full w-full object-cover object-center" />
+            ) : (
+              <div className="flex h-full items-center justify-center text-slate-300">
+                <ShoppingCart className="h-12 w-12" />
+              </div>
+            )}
+          </div>
+        </Link>
+        <WishlistButton
+          product={wishlistProduct}
+          compact
+          className="absolute bottom-4 right-4 z-10 shadow-sm"
+        />
+      </div>
 
       <div className="flex flex-1 flex-col p-4">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{brand}</p>
