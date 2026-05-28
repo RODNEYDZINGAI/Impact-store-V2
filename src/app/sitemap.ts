@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
+import Article from "@/models/Article";
 import { getCategoryTaxonomy } from "@/models/CategoryTaxonomy";
 import { categoryProductsUrlXml, getBaseUrl } from "@/lib/seo";
 
@@ -13,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     { path: "/", changeFrequency: "daily" as const, priority: 1.0 },
     { path: "/products", changeFrequency: "daily" as const, priority: 0.9 },
+    { path: "/articles", changeFrequency: "weekly" as const, priority: 0.75 },
     { path: "/about", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/contact", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/quote", changeFrequency: "monthly" as const, priority: 0.7 },
@@ -33,18 +35,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   let products: { slug: string; updatedAt?: Date }[] = [];
+  let articles: { slug: string; updatedAt?: Date; publishedAt?: Date }[] = [];
   let categories: Awaited<ReturnType<typeof getCategoryTaxonomy>> = [];
 
   try {
     await dbConnect();
-    const [productResults, taxonomyResults] = await Promise.all([
+    const [productResults, articleResults, taxonomyResults] = await Promise.all([
       Product.find({ published: true }).select("slug updatedAt").lean(),
+      Article.find({ status: "published", publishedAt: { $lte: now } }).select("slug updatedAt publishedAt").lean(),
       getCategoryTaxonomy(),
     ]);
     products = productResults;
+    articles = articleResults;
     categories = taxonomyResults;
   } catch {
     products = [];
+    articles = [];
     categories = [];
   }
 
@@ -70,5 +76,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...categoryPages, ...productPages];
+  const articlePages = articles.map((article) => ({
+    url: `${baseUrl}/articles/${article.slug}`,
+    lastModified: article.updatedAt ? new Date(article.updatedAt) : article.publishedAt ? new Date(article.publishedAt) : now,
+    changeFrequency: "monthly" as const,
+    priority: 0.72,
+  }));
+
+  return [...staticPages, ...categoryPages, ...productPages, ...articlePages];
 }

@@ -39,6 +39,7 @@ export default function Footer() {
                 ["IT Hardware", "/products?category=IT+Hardware"],
                 ["Accessories", "/products?category=Accessories"],
                 ["Security & Access Control", "/products?category=Security+%26+Access+Control"],
+                ["Buying Guides", "/articles"],
                 ["TAP", "/tap"],
                 ["MDM", "/mdm"],
               ].map(([label, href]) => (
