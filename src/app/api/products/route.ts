@@ -8,6 +8,7 @@ import Product from "@/models/Product";
 import { generateProductSku, generateVariantSku } from "@/lib/sku";
 import { stripProductSourceUrls } from "@/lib/product-response";
 import { validateProductSourceUrl } from "@/lib/product-source-url";
+import { rankProductsBySearch, getSearchFallbackMode } from "@/lib/product-search";
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,22 +29,16 @@ export async function GET(req: NextRequest) {
 
     if (condition) filters.push({ condition });
     if (featured === "true") filters.push({ featured: true });
-    if (search) {
-      filters.push({
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { brand: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } },
-          { category: { $regex: search, $options: "i" } },
-          { subcategory: { $regex: search, $options: "i" } },
-        ],
-      });
-    }
 
     const session = await getServerSession(authOptions);
-    const products = await Product.find(mergeMongoFilters(...filters)).sort({ createdAt: -1 }).lean();
+    const rawProducts = await Product.find(mergeMongoFilters(...filters)).sort({ createdAt: -1 }).lean();
+    const products = rankProductsBySearch(rawProducts, search);
     const isAdmin = session?.user.role === "admin";
-    return NextResponse.json(isAdmin ? products : stripProductSourceUrls(products));
+    const body = isAdmin ? products : stripProductSourceUrls(products);
+    const fallbackMode = getSearchFallbackMode(search, products);
+    return NextResponse.json(body, {
+      headers: { "X-Product-Search-Fallback": fallbackMode },
+    });
   } catch (error) {
     console.error("Products GET error:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
