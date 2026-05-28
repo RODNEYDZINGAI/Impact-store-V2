@@ -1,5 +1,12 @@
+import {
+  evaluatePromotions,
+  PromoEngineError,
+  type CouponValidationResult,
+  type PromotionSettings,
+  type ReferralValidationResult,
+} from "./promo-engine";
+
 const DEFAULT_SHIPPING_COST = 99;
-const REFERRAL_DISCOUNT_RATE = 0.05;
 
 export class CheckoutPricingError extends Error {
   status: number;
@@ -39,30 +46,11 @@ export interface ProductSnapshot {
   variants?: ProductVariantSnapshot[];
 }
 
-export interface ReferralValidationResult {
-  id: string;
-  code: string;
-  enabled: boolean;
-}
-
-export interface CouponValidationResult {
-  code: string;
-  active?: boolean;
-  isActive?: boolean;
-  discountType: "percentage" | "fixed";
-  value?: number;
-  discountValue?: number;
-  minOrderAmount?: number;
-  minimumOrder?: number;
-  maxUses?: number;
-  usedCount?: number;
-  expiresAt?: Date | string | null;
-}
-
-export interface CheckoutPromotionSettings {
-  couponsEnabled?: boolean;
-  referralsEnabled?: boolean;
-}
+export type {
+  ReferralValidationResult,
+  CouponValidationResult,
+  PromotionSettings as CheckoutPromotionSettings,
+} from "./promo-engine";
 
 export interface CheckoutPricingInput {
   items: CheckoutItemInput[];
@@ -70,7 +58,7 @@ export interface CheckoutPricingInput {
   currentUserId: string;
   referralCode?: unknown;
   couponCode?: unknown;
-  settings?: CheckoutPromotionSettings | null;
+  settings?: PromotionSettings | null;
   shippingCost?: number;
   resolveReferral: (
     code: string
@@ -119,23 +107,11 @@ function stringifyId(value: unknown): string {
   return "";
 }
 
-function normalizeCode(value: unknown): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const code = value.trim().toUpperCase();
-  return code || undefined;
-}
-
 function normalizeQuantity(value: unknown): number {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
     throw new CheckoutPricingError("Invalid item quantity");
   }
   return value;
-}
-
-function isExpired(value: Date | string | null | undefined): boolean {
-  if (!value) return false;
-  const expiresAt = value instanceof Date ? value : new Date(value);
-  return Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now();
 }
 
 export async function calculateCheckoutPricing({
@@ -258,93 +234,32 @@ export async function calculateCheckoutPricing({
     0
   );
 
-  // --- Referral validation ---
-  const normalizedReferralCode = normalizeCode(referralCode);
-  let validatedReferralCode: string | undefined;
-  let referrerId: string | undefined;
-
-  if (normalizedReferralCode) {
-    if (settings?.referralsEnabled === false) {
-      throw new CheckoutPricingError("Referrals are currently disabled");
+  let promoResult;
+  try {
+    promoResult = await evaluatePromotions({
+      subtotal,
+      currentUserId,
+      referralCode,
+      couponCode,
+      settings,
+      resolveReferral,
+      resolveCoupon,
+    });
+  } catch (error) {
+    if (error instanceof PromoEngineError) {
+      throw new CheckoutPricingError(error.message, error.status);
     }
-
-    const referral = await resolveReferral(normalizedReferralCode);
-    if (!referral || !referral.enabled) {
-      throw new CheckoutPricingError("Invalid referral code");
-    }
-
-    if (referral.id === currentUserId) {
-      throw new CheckoutPricingError("You cannot use your own referral code");
-    }
-
-    validatedReferralCode = referral.code.toUpperCase();
-    referrerId = referral.id;
+    throw error;
   }
 
-  const referralDiscount = validatedReferralCode
-    ? Math.round(subtotal * REFERRAL_DISCOUNT_RATE)
-    : 0;
-
-  // --- Coupon validation ---
-  const normalizedCouponCode = normalizeCode(couponCode);
-  let couponDiscount = 0;
-  let validatedCouponCode: string | undefined;
-
-  if (normalizedCouponCode) {
-    if (settings?.couponsEnabled === false) {
-      throw new CheckoutPricingError("Coupons are currently disabled");
-    }
-
-    if (!resolveCoupon) {
-      throw new CheckoutPricingError("Coupons are not available");
-    }
-
-    const coupon = await resolveCoupon(normalizedCouponCode);
-
-    if (!coupon || (coupon.active ?? coupon.isActive) !== true) {
-      throw new CheckoutPricingError("Invalid coupon code");
-    }
-
-    if (isExpired(coupon.expiresAt)) {
-      throw new CheckoutPricingError("Coupon has expired");
-    }
-
-    if (
-      typeof coupon.maxUses === "number" &&
-      typeof coupon.usedCount === "number" &&
-      coupon.usedCount >= coupon.maxUses
-    ) {
-      throw new CheckoutPricingError("Coupon usage limit reached");
-    }
-
-    const minOrderAmount = coupon.minOrderAmount ?? coupon.minimumOrder ?? 0;
-    if (subtotal < minOrderAmount) {
-      throw new CheckoutPricingError(
-        `Coupon requires a minimum order of R${minOrderAmount}`
-      );
-    }
-
-    const discountableSubtotal = Math.max(0, subtotal - referralDiscount);
-    const couponValue = coupon.value ?? coupon.discountValue;
-    if (typeof couponValue !== "number" || !Number.isFinite(couponValue)) {
-      throw new CheckoutPricingError("Invalid coupon discount");
-    }
-
-    if (coupon.discountType === "percentage") {
-      if (couponValue > 100) {
-        throw new CheckoutPricingError("Invalid coupon discount");
-      }
-      couponDiscount = Math.round((discountableSubtotal * couponValue) / 100);
-    } else {
-      couponDiscount = Math.round(couponValue);
-    }
-
-    // Cap discount at discountable subtotal
-    couponDiscount = Math.min(couponDiscount, discountableSubtotal);
-    validatedCouponCode = coupon.code.toUpperCase();
-  }
-
-  const discount = couponDiscount + referralDiscount;
+  const {
+    discount,
+    referralDiscount,
+    couponDiscount,
+    referralCode: validatedReferralCode,
+    referrerId,
+    couponCode: validatedCouponCode,
+  } = promoResult;
   const total = subtotal + shippingCost - discount;
 
   if (total <= 0) {
