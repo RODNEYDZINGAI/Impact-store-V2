@@ -10,6 +10,7 @@ export interface AdminProductFilterableProduct {
   subcategory?: string;
   condition?: string;
   stock?: number;
+  supplier?: string;
   published?: boolean;
 }
 
@@ -72,6 +73,7 @@ export function applyAdminProductFilters<T extends AdminProductFilterableProduct
         product.categorySlug,
         product.subcategory,
         product.condition,
+        product.supplier,
       ]
         .map(normalizeValue)
         .join(" ")

@@ -25,6 +25,7 @@ interface Product {
   condition: string;
   stock: number;
   brand: string;
+  supplier?: string;
   published: boolean;
 }
 
@@ -378,6 +379,7 @@ export default function AdminProductsPage() {
               </th>
               <th className="px-4 py-3">Product</th>
               <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Supplier</th>
               <th className="px-4 py-3">Condition</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Stock</th>
@@ -417,6 +419,7 @@ export default function AdminProductsPage() {
                     </p>
                   )}
                 </td>
+                <td className="px-4 py-3 text-slate-500">{p.supplier ?? "—"}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${

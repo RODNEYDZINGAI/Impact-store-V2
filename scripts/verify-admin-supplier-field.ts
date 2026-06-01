@@ -38,6 +38,10 @@ assert.match(editProductPage, /supplier:\s*p\.supplier \|\| ""/, "edit product f
 assert.match(editProductPage, />Supplier</, "edit product form should render a Supplier input label");
 assert.match(editProductPage, /supplier:\s*form\.supplier\.trim\(\) \|\| undefined/, "edit product form should submit trimmed supplier");
 
+const adminProductListPage = readFileSync("src/app/admin/products/page.tsx", "utf8");
+assert.match(adminProductListPage, /supplier\?: string/, "admin product list should type supplier for admin display");
+assert.match(adminProductListPage, /p\.supplier \?\? "—"/, "admin product list should show supplier values");
+
 const storefrontFiles = [
   "src/app/page.tsx",
   "src/app/products/page.tsx",
