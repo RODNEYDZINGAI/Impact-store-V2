@@ -15,11 +15,22 @@ import {
 } from "@/lib/checkout-pricing";
 import { customerAddressFromShippingAddress } from "@/lib/customer-address";
 
+const BOBPAY_AVAILABLE = process.env.BOBPAY_ENABLED === "true";
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    const userId = session?.user?.id;
+    const userEmail = session?.user?.email;
+    if (!userId || !userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!BOBPAY_AVAILABLE) {
+      return NextResponse.json(
+        { error: "BobPay is coming soon. Please use PayFast for now." },
+        { status: 503 }
+      );
     }
 
     await dbConnect();
@@ -42,7 +53,7 @@ export async function POST(req: NextRequest) {
     const pricing = await calculateCheckoutPricing({
       items,
       products,
-      currentUserId: session.user.id,
+      currentUserId: userId,
       referralCode: body.referralCode,
       couponCode: body.couponCode,
       settings,
@@ -102,7 +113,7 @@ export async function POST(req: NextRequest) {
 
     // Create the order
     const order = new Order({
-      user: session.user.id,
+      user: userId,
       items: pricing.orderItems.map((item) => ({
         ...item,
         product: new Types.ObjectId(item.product),
@@ -120,7 +131,7 @@ export async function POST(req: NextRequest) {
 
     const customerAddress = customerAddressFromShippingAddress(body.shippingAddress);
     if (customerAddress) {
-      await User.findByIdAndUpdate(session.user.id, {
+      await User.findByIdAndUpdate(userId, {
         $set: { address: customerAddress },
       });
     }
@@ -130,7 +141,7 @@ export async function POST(req: NextRequest) {
     const payment = await createPaymentLink({
       orderId,
       amount: pricing.total,
-      email: session.user.email!,
+      email: userEmail,
       itemName: `Megabyte Order #${orderId.slice(-6).toUpperCase()}`,
       itemDescription: pricing.itemNames,
     });
