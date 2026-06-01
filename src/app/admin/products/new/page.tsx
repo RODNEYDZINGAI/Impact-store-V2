@@ -32,7 +32,7 @@ export default function NewProductPage() {
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [form, setForm] = useState({
     name: "", slug: "", sku: "", subtitle: "", description: "", price: "", originalPrice: "",
-    sourceUrl: "", category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
+    sourceUrl: "", supplier: "", category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
   });
 
   const addSpec = () => setSpecs([...specs, { key: "", value: "" }]);
@@ -89,6 +89,7 @@ export default function NewProductPage() {
       sku: form.sku, // server auto-generates if empty
       subtitle: form.subtitle || undefined,
       sourceUrl: form.sourceUrl.trim() || undefined,
+      supplier: form.supplier.trim() || undefined,
       price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       stock: Number(form.stock), images, specs: specsObject,
       variants: serializedVariants.length > 0 ? serializedVariants : undefined,
@@ -126,6 +127,10 @@ export default function NewProductPage() {
             <label className="block text-sm font-medium text-slate-500">Source URL</label>
             <input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} className={inputClass} placeholder="Supplier or product source link" />
             <p className="mt-1 text-xs text-slate-500">Stored for admins only; must start with http:// or https://.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-500">Supplier</label>
+            <input type="text" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} className={inputClass} placeholder="e.g., Scoop, Rectron, Tarsus" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-500">Brand</label>

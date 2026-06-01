@@ -118,7 +118,7 @@ export default async function HomePage() {
     featured: true,
     $or: [{ published: true }, { published: { $exists: false } }],
   })
-    .select("-sourceUrl")
+    .select("-sourceUrl -supplier")
     .limit(8)
     .lean();
 

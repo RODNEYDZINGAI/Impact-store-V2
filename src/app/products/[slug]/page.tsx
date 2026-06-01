@@ -61,7 +61,7 @@ export default async function ProductDetailPage({ params }: Props) {
     slug,
     $or: [{ published: true }, { published: { $exists: false } }],
   })
-    .select("-sourceUrl")
+    .select("-sourceUrl -supplier")
     .lean();
 
   if (!product) notFound();
@@ -75,7 +75,7 @@ export default async function ProductDetailPage({ params }: Props) {
     stock: { $gt: 0 },
     $or: [{ published: true }, { published: { $exists: false } }],
   })
-    .select("-sourceUrl")
+    .select("-sourceUrl -supplier")
     .limit(4)
     .lean();
 

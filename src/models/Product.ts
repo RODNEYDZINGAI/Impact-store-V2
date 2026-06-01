@@ -28,6 +28,7 @@ export interface IProduct extends Document {
   sku: string;
   subtitle?: string;
   sourceUrl?: string;
+  supplier?: string;
   description: string;
   price: number;
   originalPrice?: number;
@@ -76,6 +77,7 @@ const ProductSchema = new Schema<IProduct>(
         message: "Source URL must be a valid HTTP or HTTPS URL",
       },
     },
+    supplier: { type: String, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
     originalPrice: { type: Number },
