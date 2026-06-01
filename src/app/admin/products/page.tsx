@@ -1,9 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  applyAdminProductFilters,
+  buildAdminProductFilterOptions,
+  createDefaultAdminProductFilters,
+  hasActiveAdminProductAttributeFilters,
+  isAdminProductPublished,
+  type AdminProductFilters,
+  type AdminProductStatusFilter,
+  type AdminProductStockFilter,
+} from "@/lib/admin-product-filters";
 
 interface Product {
   _id: string;
@@ -15,17 +25,27 @@ interface Product {
   condition: string;
   stock: number;
   brand: string;
+  supplier?: string;
   published: boolean;
 }
 
-type FilterTab = "all" | "published" | "unpublished";
+type FilterTab = AdminProductStatusFilter;
+
+const STOCK_FILTER_LABELS: Record<AdminProductStockFilter, string> = {
+  all: "All stock",
+  "in-stock": "In stock",
+  "out-of-stock": "Out of stock",
+};
+
+const formatFilterLabel = (value: string) =>
+  value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, " ");
 
 export default function AdminProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [filters, setFilters] = useState<AdminProductFilters>(createDefaultAdminProductFilters());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const fetchProducts = useCallback((showLoading = true) => {
@@ -45,14 +65,23 @@ export default function AdminProductsPage() {
     return () => window.clearTimeout(timer);
   }, [fetchProducts]);
 
-  // Treat undefined as published (existing products before this feature)
-  const isPublished = (p: Product) => p.published !== false;
-  
-  const filteredProducts = products.filter((p) => {
-    if (activeTab === "published") return isPublished(p);
-    if (activeTab === "unpublished") return !isPublished(p);
-    return true;
-  });
+  const updateFilter = <K extends keyof AdminProductFilters>(
+    key: K,
+    value: AdminProductFilters[K]
+  ) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+
+  const setActiveTab = (status: FilterTab) => updateFilter("status", status);
+  const activeTab = filters.status;
+
+  const filterOptions = useMemo(() => buildAdminProductFilterOptions(products), [products]);
+  const filteredProducts = useMemo(
+    () => applyAdminProductFilters<Product>(products, filters),
+    [products, filters]
+  );
+  const visibleSelectedCount = filteredProducts.filter((p: Product) => selectedIds.has(p._id)).length;
+  const hasActiveAttributeFilters = hasActiveAdminProductAttributeFilters(filters);
 
   const toggleSelection = (id: string) => {
     const newSet = new Set(selectedIds);
@@ -65,10 +94,18 @@ export default function AdminProductsPage() {
   };
 
   const toggleAll = () => {
-    if (selectedIds.size === filteredProducts.length) {
-      setSelectedIds(new Set());
+    if (visibleSelectedCount === filteredProducts.length) {
+      setSelectedIds((current) => {
+        const next = new Set(current);
+        filteredProducts.forEach((product) => next.delete(product._id));
+        return next;
+      });
     } else {
-      setSelectedIds(new Set(filteredProducts.map((p) => p._id)));
+      setSelectedIds((current) => {
+        const next = new Set(current);
+        filteredProducts.forEach((product) => next.add(product._id));
+        return next;
+      });
     }
   };
 
@@ -77,11 +114,11 @@ export default function AdminProductsPage() {
   const handleBulkDelete = async () => {
     if (!confirm(`Are you sure you want to delete ${selectedIds.size} product(s)?`)) return;
     setBulkActionLoading(true);
-    
+
     const promises = Array.from(selectedIds).map((id) =>
       fetch(`/api/products/${id}`, { method: "DELETE" })
     );
-    
+
     await Promise.all(promises);
     setSelectedIds(new Set());
     fetchProducts();
@@ -90,7 +127,7 @@ export default function AdminProductsPage() {
 
   const handleBulkUnpublish = async () => {
     setBulkActionLoading(true);
-    
+
     const promises = Array.from(selectedIds).map((id) =>
       fetch(`/api/products/${id}`, {
         method: "PUT",
@@ -98,7 +135,7 @@ export default function AdminProductsPage() {
         body: JSON.stringify({ published: false }),
       })
     );
-    
+
     await Promise.all(promises);
     setSelectedIds(new Set());
     fetchProducts();
@@ -107,7 +144,7 @@ export default function AdminProductsPage() {
 
   const handleBulkPublish = async () => {
     setBulkActionLoading(true);
-    
+
     const promises = Array.from(selectedIds).map((id) =>
       fetch(`/api/products/${id}`, {
         method: "PUT",
@@ -115,15 +152,15 @@ export default function AdminProductsPage() {
         body: JSON.stringify({ published: true }),
       })
     );
-    
+
     await Promise.all(promises);
     setSelectedIds(new Set());
     fetchProducts();
     setBulkActionLoading(false);
   };
 
-  const publishedCount = products.filter((p) => isPublished(p)).length;
-  const unpublishedCount = products.filter((p) => !isPublished(p)).length;
+  const publishedCount = products.filter((p: Product) => isAdminProductPublished(p)).length;
+  const unpublishedCount = products.filter((p: Product) => !isAdminProductPublished(p)).length;
 
   if (loading) {
     return (
@@ -179,6 +216,110 @@ export default function AdminProductsPage() {
         </button>
       </div>
 
+      {/* Attribute Filters */}
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+            Search
+            <input
+              type="search"
+              value={filters.search}
+              onChange={(e) => updateFilter("search", e.target.value)}
+              placeholder="Name, brand, category..."
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 placeholder-slate-400 focus:border-[#1f4f8f] focus:outline-none"
+            />
+          </label>
+
+          <label className="flex min-w-[160px] flex-col gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+            Category
+            <select
+              value={filters.category}
+              onChange={(e) => updateFilter("category", e.target.value)}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 focus:border-[#1f4f8f] focus:outline-none"
+            >
+              <option value="all">All categories</option>
+              {filterOptions.categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex min-w-[150px] flex-col gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+            Brand
+            <select
+              value={filters.brand}
+              onChange={(e) => updateFilter("brand", e.target.value)}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 focus:border-[#1f4f8f] focus:outline-none"
+            >
+              <option value="all">All brands</option>
+              {filterOptions.brands.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex min-w-[150px] flex-col gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+            Condition
+            <select
+              value={filters.condition}
+              onChange={(e) => updateFilter("condition", e.target.value)}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 focus:border-[#1f4f8f] focus:outline-none"
+            >
+              <option value="all">All conditions</option>
+              {filterOptions.conditions.map((condition) => (
+                <option key={condition} value={condition}>
+                  {condition}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex min-w-[140px] flex-col gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+            Stock
+            <select
+              value={filters.stock}
+              onChange={(e) => updateFilter("stock", e.target.value as AdminProductStockFilter)}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-700 focus:border-[#1f4f8f] focus:outline-none"
+            >
+              {(Object.keys(STOCK_FILTER_LABELS) as AdminProductStockFilter[]).map((stockFilter) => (
+                <option key={stockFilter} value={stockFilter}>
+                  {STOCK_FILTER_LABELS[stockFilter]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setFilters(createDefaultAdminProductFilters())}
+            disabled={!hasActiveAttributeFilters && activeTab === "all"}
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Reset filters
+          </button>
+        </div>
+
+        <p className="mt-3 text-sm text-slate-500">
+          Showing {filteredProducts.length} of {products.length} products
+          {hasActiveAttributeFilters
+            ? ` matching ${[
+                filters.search && `search "${filters.search}"`,
+                filters.category !== "all" && `category ${filters.category}`,
+                filters.brand !== "all" && `brand ${filters.brand}`,
+                filters.condition !== "all" && `condition ${filters.condition}`,
+                filters.stock !== "all" && formatFilterLabel(filters.stock),
+              ]
+                .filter(Boolean)
+                .join(", ")}`
+            : ""}
+          .
+        </p>
+      </div>
+
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
         <div className="mt-4 flex items-center gap-4 rounded-xl border border-steel/30 bg-steel/10 px-4 py-3">
@@ -230,7 +371,7 @@ export default function AdminProductsPage() {
                   type="checkbox"
                   checked={
                     filteredProducts.length > 0 &&
-                    selectedIds.size === filteredProducts.length
+                    visibleSelectedCount === filteredProducts.length
                   }
                   onChange={toggleAll}
                   className="rounded border-slate-200 bg-slate-50"
@@ -238,6 +379,7 @@ export default function AdminProductsPage() {
               </th>
               <th className="px-4 py-3">Product</th>
               <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Supplier</th>
               <th className="px-4 py-3">Condition</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Stock</th>
@@ -277,6 +419,7 @@ export default function AdminProductsPage() {
                     </p>
                   )}
                 </td>
+                <td className="px-4 py-3 text-slate-500">{p.supplier ?? "—"}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
@@ -301,12 +444,12 @@ export default function AdminProductsPage() {
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
-                      isPublished(p)
+                      isAdminProductPublished(p)
                         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                         : "border-slate-200 bg-slate-100 text-slate-600"
                     }`}
                   >
-                    {isPublished(p) ? "Published" : "Unpublished"}
+                    {isAdminProductPublished(p) ? "Published" : "Unpublished"}
                   </span>
                 </td>
               </tr>

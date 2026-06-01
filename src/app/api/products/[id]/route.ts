@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { generateVariantSku } from "@/lib/sku";
+import { stripProductSourceUrls } from "@/lib/product-response";
+import { validateProductSourceUrl } from "@/lib/product-source-url";
 
 export async function GET(
   _req: NextRequest,
@@ -12,11 +14,13 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await params;
-    const product = await Product.findById(id);
+    const session = await getServerSession(authOptions);
+    const product = await Product.findById(id).lean();
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    return NextResponse.json(product);
+    const isAdmin = session?.user.role === "admin";
+    return NextResponse.json(isAdmin ? product : stripProductSourceUrls(product));
   } catch (error) {
     console.error("Product GET error:", error);
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
@@ -36,6 +40,29 @@ export async function PUT(
     await dbConnect();
     const { id } = await params;
     const body = await req.json();
+    let shouldUnsetSourceUrl = false;
+    let shouldUnsetSupplier = false;
+    if (Object.prototype.hasOwnProperty.call(body, "sourceUrl")) {
+      try {
+        body.sourceUrl = validateProductSourceUrl(body.sourceUrl);
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : "Invalid source URL" },
+          { status: 400 }
+        );
+      }
+      if (body.sourceUrl === undefined) {
+        delete body.sourceUrl;
+        shouldUnsetSourceUrl = true;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "supplier")) {
+      body.supplier = typeof body.supplier === "string" ? body.supplier.trim() || undefined : undefined;
+      if (body.supplier === undefined) {
+        delete body.supplier;
+        shouldUnsetSupplier = true;
+      }
+    }
 
     // Auto-generate variant SKUs for any new variants that don't have one
     if (Array.isArray(body.variants)) {
@@ -49,7 +76,16 @@ export async function PUT(
     }
 
     // Use $set to properly update fields including published
-    const product = await Product.findByIdAndUpdate(id, { $set: body }, { returnDocument: 'after' });
+    const unsetFields: Record<string, ""> = {};
+    if (shouldUnsetSourceUrl) unsetFields.sourceUrl = "";
+    if (shouldUnsetSupplier) unsetFields.supplier = "";
+    const update = Object.keys(unsetFields).length > 0
+      ? { $set: body, $unset: unsetFields }
+      : { $set: body };
+    const product = await Product.findByIdAndUpdate(id, update, {
+      returnDocument: "after",
+      runValidators: true,
+    });
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }

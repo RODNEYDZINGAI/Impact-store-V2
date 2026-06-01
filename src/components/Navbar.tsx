@@ -1,9 +1,11 @@
 "use client";
 
-import { Menu, Search, ShoppingBag, UserRound, X, ChevronDown, LayoutDashboard, User, Package, LogOut } from "lucide-react";
+import { Menu, Search, ShoppingBag, UserRound, X, ChevronDown, LayoutDashboard, User, Package, LogOut, Heart } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 const productLinks = [
@@ -19,6 +21,7 @@ const productLinks = [
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/articles", label: "Articles" },
   { href: "/recycling", label: "Recycling" },
   { href: "/contact", label: "Contact Us" },
 ];
@@ -26,6 +29,7 @@ const navLinks = [
 export default function Navbar() {
   const { data: session } = useSession();
   const { itemCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -75,8 +79,8 @@ export default function Navbar() {
             </button>
 
             <Link href="/" className="flex items-center gap-2 text-slate-900">
-              <img src="/impact/impact-logo.svg" alt="Impact Store" className="h-10 w-10 sm:hidden" />
-              <img src="/impact/impact-logo-lockup.svg" alt="Impact Store" className="hidden h-10 w-auto sm:block" />
+              <Image src="/impact/impact-logo.svg" alt="Impact Store" width={40} height={40} className="h-10 w-10 sm:hidden" />
+              <Image src="/impact/impact-logo-lockup.svg" alt="Impact Store" width={160} height={40} className="hidden h-10 w-auto sm:block" />
             </Link>
           </div>
 
@@ -132,6 +136,18 @@ export default function Navbar() {
               className="hidden rounded-full bg-[#fbbf24] px-5 py-2 text-sm font-semibold text-[#1f2937] transition hover:bg-[#f59e0b] lg:inline-flex"
             >
               Request Quote
+            </Link>
+            <Link
+              href="/wishlist"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+              aria-label="Wishlist"
+            >
+              <Heart className="h-4 w-4" />
+              {wishlistCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-100 px-1 text-[10px] font-bold text-rose-600">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
             <Link
               href="/cart"
@@ -247,6 +263,13 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/wishlist"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+              >
+                Wishlist{wishlistCount > 0 ? ` (${wishlistCount})` : ""}
+              </Link>
               {session ? (
                 <>
                   <Link

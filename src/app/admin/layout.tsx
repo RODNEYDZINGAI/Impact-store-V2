@@ -9,6 +9,7 @@ import { ReactNode, useEffect } from "react";
 const adminLinks = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/articles", label: "Articles" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/quotes", label: "Quotes" },

@@ -34,7 +34,7 @@ export default function EditProductPage() {
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [form, setForm] = useState({
     name: "", slug: "", sku: "", subtitle: "", description: "", price: "", originalPrice: "",
-    category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
+    sourceUrl: "", supplier: "", category: "Laptops", categorySlug: "it-hardware", subcategory: "laptops-desktops", condition: "Refurbished", brand: "", stock: "", featured: false,
   });
 
   const addSpec = () => setSpecs([...specs, { key: "", value: "" }]);
@@ -73,7 +73,7 @@ export default function EditProductPage() {
         name: p.name, slug: p.slug, sku: p.sku || "", subtitle: p.subtitle || "", description: p.description, price: String(p.price),
         originalPrice: p.originalPrice ? String(p.originalPrice) : "", category: p.category,
         categorySlug: p.categorySlug || "", subcategory: p.subcategory || "",
-        condition: p.condition, brand: p.brand, stock: String(p.stock), featured: p.featured,
+        sourceUrl: p.sourceUrl || "", supplier: p.supplier || "", condition: p.condition, brand: p.brand, stock: String(p.stock), featured: p.featured,
       });
       setImages(p.images || []);
       if (p.specs) {
@@ -122,6 +122,8 @@ export default function EditProductPage() {
       ...form,
       sku: form.sku, // preserve existing server-assigned SKU
       subtitle: form.subtitle || undefined,
+      sourceUrl: form.sourceUrl.trim() || undefined,
+      supplier: form.supplier.trim() || undefined,
       price: Number(form.price),
       originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       stock: Number(form.stock),
@@ -165,6 +167,15 @@ export default function EditProductPage() {
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-500">Subtitle</label>
             <input type="text" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className={inputClass} placeholder="Short tagline shown under product name" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-slate-500">Source URL</label>
+            <input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} className={inputClass} placeholder="Supplier or product source link" />
+            <p className="mt-1 text-xs text-slate-500">Stored for admins only; must start with http:// or https://.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-500">Supplier</label>
+            <input type="text" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} className={inputClass} placeholder="e.g., Scoop, Rectron, Tarsus" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-500">Brand</label>

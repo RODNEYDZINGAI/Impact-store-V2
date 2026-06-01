@@ -3,6 +3,7 @@
 import { Package, Truck, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const slides = [
   {
@@ -121,7 +122,14 @@ export default function HeroSlider() {
 
           <div className="relative hidden lg:block">
             <div className="relative z-10 aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl">
-              <img src={slide.image} alt={`${slide.highlight} ${slide.eyebrow} solution from Impact Store`} className="h-full w-full object-cover" />
+              <Image
+                src={slide.image}
+                alt={`${slide.highlight} ${slide.eyebrow} solution from Impact Store`}
+                fill
+                priority={current === 0}
+                sizes="(min-width: 1024px) 50vw, 0px"
+                className="object-cover"
+              />
             </div>
 
             <div className="absolute -bottom-8 -left-6 z-20 rounded-2xl bg-white p-4 text-[#1f2937] shadow-xl">

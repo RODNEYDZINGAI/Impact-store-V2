@@ -28,6 +28,7 @@ export interface IUser extends Document {
     discountIssued: number;
     referredOrders: mongoose.Types.ObjectId[];
   };
+  wishlist: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +65,7 @@ const UserSchema = new Schema<IUser>(
       discountIssued: { type: Number, default: 0 },
       referredOrders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
     },
+    wishlist: { type: [{ type: Schema.Types.ObjectId, ref: "Product" }], default: [] },
   },
   { timestamps: true }
 );

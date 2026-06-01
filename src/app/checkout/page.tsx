@@ -1,15 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { checkoutFormFromCustomerAddress } from "@/lib/customer-address";
+
+interface CustomerAddress {
+  street?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+interface UserProfileResponse {
+  name?: string;
+  address?: CustomerAddress;
+}
+
+type PaymentMethod = "bobpay" | "payfast";
+
+const paymentMethodLabels: Record<PaymentMethod, string> = {
+  bobpay: "BobPay",
+  payfast: "PayFast",
+};
+
+const paymentMethodStatus: Record<PaymentMethod, { available: boolean; helperText: string }> = {
+  bobpay: {
+    available: false,
+    helperText: "Coming soon",
+  },
+  payfast: {
+    available: true,
+    helperText: "Secure online payment",
+  },
+};
 
 export default function CheckoutPage() {
   const { items, total } = useCart();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payfast");
   const [form, setForm] = useState({
     fullName: "", address: "", city: "", province: "", postalCode: "", phone: "",
   });
@@ -25,6 +58,43 @@ export default function CheckoutPage() {
   const SHIPPING_COST = 99;
   const discount = referralValid ? Math.round(total * 0.05) : 0;
   const finalTotal = total + SHIPPING_COST - discount;
+
+  useEffect(() => {
+    if (!session) return;
+
+    let cancelled = false;
+
+    fetch("/api/user")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user: UserProfileResponse | null) => {
+        if (cancelled || !user) return;
+
+        const savedForm = checkoutFormFromCustomerAddress(
+          user.address,
+          user.name || session.user?.name || ""
+        );
+
+        if (savedForm) {
+          setForm(savedForm);
+        } else if (user.name || session.user?.name) {
+          setForm((prev) => ({
+            ...prev,
+            fullName: prev.fullName || user.name || session.user?.name || "",
+          }));
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setForm((prev) => ({
+          ...prev,
+          fullName: prev.fullName || session.user?.name || "",
+        }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   if (items.length === 0) {
     return (
@@ -57,11 +127,17 @@ export default function CheckoutPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/payments/bobpay", {
+      const selectedPaymentLabel = paymentMethodLabels[paymentMethod];
+      if (!paymentMethodStatus[paymentMethod].available) {
+        alert(`${selectedPaymentLabel} is coming soon. Please choose PayFast for now.`);
+        return;
+      }
+
+      const res = await fetch(`/api/payments/${paymentMethod}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ product: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
+          items: items.map((i) => ({ product: i._id, variantId: i.variantId, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
           shippingAddress: form,
           total: finalTotal,
           referralCode: referralValid ? referralCode : undefined,
@@ -73,7 +149,7 @@ export default function CheckoutPage() {
       if (res.ok && data.paymentUrl) {
         window.location.href = data.paymentUrl;
       } else {
-        alert(data.error || "Failed to initiate payment.");
+        alert(data.error || `Failed to initiate ${selectedPaymentLabel} payment.`);
       }
     } catch { alert("Something went wrong."); }
     finally { setLoading(false); }
@@ -261,12 +337,52 @@ export default function CheckoutPage() {
                   <span>R{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
-              <Button type="submit" disabled className="mt-6 w-full bg-gray-300 text-gray-500 cursor-not-allowed">
-                Payments Coming Soon
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-900">Payment Method</h3>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  {(["bobpay", "payfast"] as PaymentMethod[]).map((method) => {
+                    const selected = paymentMethod === method;
+                    const status = paymentMethodStatus[method];
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => {
+                          if (status.available) setPaymentMethod(method);
+                        }}
+                        disabled={!status.available}
+                        className={`rounded-xl border px-4 py-3 text-left transition ${
+                          selected
+                            ? "border-steel bg-steel/10 text-steel"
+                            : status.available
+                            ? "border-gray-200 bg-white text-gray-700 hover:border-steel/60"
+                            : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        <span className="flex items-center justify-between gap-3 text-sm font-semibold">
+                          <span>{paymentMethodLabels[method]}</span>
+                          {!status.available && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                              Coming Soon
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">{status.helperText}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="mt-6 w-full bg-gradient-to-r from-royal to-steel text-white shadow-lg shadow-royal/25 hover:from-steel hover:to-royal disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading
+                  ? `Initiating ${paymentMethodLabels[paymentMethod]}...`
+                  : `Pay with ${paymentMethodLabels[paymentMethod]}`}
               </Button>
-              <p className="mt-2 text-center text-xs text-amber-600 font-medium">
-                Online payments are temporarily unavailable while we set up our payment provider. Please contact us to place an order.
-              </p>
             </div>
           </div>
         </form>
