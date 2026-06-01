@@ -66,9 +66,9 @@ export function createPayFastRedirectUrl(params: CreatePayFastPaymentParams) {
   const merchantId = process.env.PAYFAST_MERCHANT_ID?.trim();
   const merchantKey = process.env.PAYFAST_MERCHANT_KEY?.trim();
   const processUrl = (
-    process.env.PAYFAST_SANDBOX_URL ||
     process.env.PAYFAST_URL ||
-    "https://sandbox.payfast.co.za/eng/process"
+    process.env.PAYFAST_SANDBOX_URL ||
+    "https://www.payfast.co.za/eng/process"
   ).trim();
   const baseUrl = normalizeBaseUrl(
     params.baseUrl || process.env.NEXT_PUBLIC_BASE_URL
