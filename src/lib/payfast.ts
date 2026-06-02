@@ -27,8 +27,61 @@ const PAYFAST_FIELD_ORDER = [
   "item_description",
 ];
 
-function encodePayFastValue(value: string) {
+export function encodePayFastValue(value: string) {
   return encodeURIComponent(value.trim()).replace(/%20/g, "+");
+}
+
+export function buildPayFastSignatureString(
+  entries: Iterable<[string, string]>,
+  passphrase?: string | null
+) {
+  const parts = Array.from(entries)
+    .filter(
+      ([key, value]) =>
+        key !== "signature" &&
+        value !== undefined &&
+        value !== null
+    )
+    .map(([key, value]) => `${key}=${encodePayFastValue(String(value))}`);
+
+  if (passphrase) {
+    parts.push(`passphrase=${encodePayFastValue(passphrase)}`);
+  }
+
+  return parts.join("&");
+}
+
+export function verifyPayFastSignatureEntries(
+  entries: Iterable<[string, string]>,
+  passphrase?: string | null
+) {
+  const entryList = Array.from(entries);
+  const receivedSignature = entryList.find(([key]) => key === "signature")?.[1];
+  if (!receivedSignature) return false;
+
+  const calculated = crypto
+    .createHash("md5")
+    .update(buildPayFastSignatureString(entryList, passphrase))
+    .digest("hex");
+
+  return calculated === receivedSignature;
+}
+
+export function summarizePayFastPayload(
+  entries: Iterable<[string, string]>,
+  metadata: { contentType?: string | null; contentLength?: string | null } = {}
+) {
+  const fieldNames = Array.from(entries).map(([key]) => key);
+  return {
+    contentType: metadata.contentType || null,
+    contentLength: metadata.contentLength || null,
+    fieldNames,
+    hasSignature: fieldNames.includes("signature"),
+    hasOrderId: fieldNames.includes("m_payment_id"),
+    hasPaymentId: fieldNames.includes("pf_payment_id"),
+    hasPaymentStatus: fieldNames.includes("payment_status"),
+    fieldCount: fieldNames.length,
+  };
 }
 
 function splitName(name?: string | null): PayFastParams {
