@@ -1,6 +1,6 @@
 import { FaWhatsapp } from "react-icons/fa";
 
-const WHATSAPP_NUMBER = "27100013608";
+const WHATSAPP_NUMBER = "27785229194";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 export default function FloatingWhatsAppButton() {

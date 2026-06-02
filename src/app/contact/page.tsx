@@ -108,8 +108,8 @@ export default function ContactPage() {
             </div>
             <h3 className="font-semibold text-[#1f2937]">Phone</h3>
             <p className="mt-2 text-sm text-slate-500">
-              <a href="tel:+27100013608" className="transition hover:text-[#1f4f8f]">
-                +27 10 001 3608
+              <a href="tel:+27785229194" className="transition hover:text-[#1f4f8f]">
+                +27 78 522 9194
               </a>
               <br />
               Calls &amp; WhatsApp

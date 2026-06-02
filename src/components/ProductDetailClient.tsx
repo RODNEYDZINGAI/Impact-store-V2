@@ -279,13 +279,13 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                     </li>
                     <li>
                       Phone:{" "}
-                      <a href="tel:+27100013608" className="text-[#1f4f8f] hover:underline">
-                        +27 10 001 3608
+                      <a href="tel:+27785229194" className="text-[#1f4f8f] hover:underline">
+                        +27 78 522 9194
                       </a>
                     </li>
                     <li>
                       <a
-                        href="https://wa.me/27100013608"
+                        href="https://wa.me/27785229194"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[#1f4f8f] hover:underline"
