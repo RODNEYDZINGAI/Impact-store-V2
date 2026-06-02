@@ -271,10 +271,10 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                     <li>
                       Email:{" "}
                       <a
-                        href="mailto:info@impactholdings.co.za"
+                        href="mailto:info@impactstore.co.za"
                         className="text-[#1f4f8f] hover:underline"
                       >
-                        info@impactholdings.co.za
+                        info@impactstore.co.za
                       </a>
                     </li>
                     <li>
