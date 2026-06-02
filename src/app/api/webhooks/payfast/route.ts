@@ -1,39 +1,19 @@
-import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Coupon from "@/models/Coupon";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-
-function encodePayFastValue(value: string) {
-  return encodeURIComponent(value.trim()).replace(/%20/g, "+");
-}
-
-function signatureStringFromEntries(entries: [string, string][], passphrase?: string) {
-  const parts = entries
-    .filter(([key, value]) => key !== "signature" && value !== undefined && value !== null && String(value).trim() !== "")
-    .map(([key, value]) => `${key}=${encodePayFastValue(String(value))}`);
-
-  if (passphrase) {
-    parts.push(`passphrase=${encodePayFastValue(passphrase)}`);
-  }
-
-  return parts.join("&");
-}
+import {
+  summarizePayFastPayload,
+  verifyPayFastSignatureEntries,
+} from "@/lib/payfast";
 
 function verifyPayFastSignature(entries: [string, string][]) {
-  const receivedSignature = entries.find(([key]) => key === "signature")?.[1];
-  if (!receivedSignature) return false;
-
   const passphrase =
     process.env.PAYFAST_PASSPHRASE?.trim() || process.env.PAYFAST_SALT?.trim();
-  const calculated = crypto
-    .createHash("md5")
-    .update(signatureStringFromEntries(entries, passphrase))
-    .digest("hex");
 
-  return calculated === receivedSignature;
+  return verifyPayFastSignatureEntries(entries, passphrase);
 }
 
 export async function POST(req: NextRequest) {
@@ -45,10 +25,10 @@ export async function POST(req: NextRequest) {
     const payload = Object.fromEntries(entries);
 
     if (!verifyPayFastSignature(entries)) {
-      console.warn("[PayFast] Invalid ITN signature", {
-        orderId: payload.m_payment_id,
-        paymentId: payload.pf_payment_id,
-      });
+      console.warn("[PayFast] Invalid ITN signature", JSON.stringify(summarizePayFastPayload(entries, {
+        contentType: req.headers.get("content-type"),
+        contentLength: req.headers.get("content-length"),
+      })));
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
