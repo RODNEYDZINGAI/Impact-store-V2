@@ -138,9 +138,16 @@ export async function POST(req: NextRequest) {
 
     // Send order confirmation email when payment is successful
     if (paymentStatus === "paid" && !wasPaid) {
+      console.log("[BobPay] Payment confirmed, triggering order email:", JSON.stringify({
+        orderId: order._id.toString().slice(-8).toUpperCase(),
+        paymentStatus,
+        wasPaid,
+        userEmail: order.user,
+      }));
       try {
         const user = await User.findById(order.user);
         if (user) {
+          console.log("[BobPay] User found, sending order confirmation to:", user.email);
           await sendOrderConfirmationEmail({
             to: user.email,
             name: user.name,

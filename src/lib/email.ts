@@ -1,6 +1,4 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const MAILEROO_API = "https://smtp.maileroo.com/api/v2/emails";
 
 const normalizeHost = (value?: string) =>
   (value || "")
@@ -31,54 +29,110 @@ const APP_URL =
   process.env.NEXT_PUBLIC_BASE_URL ||
   `http://${APP_DOMAIN}`;
 
-const EMAIL_DOMAIN = normalizeHost(process.env.RESEND_EMAIL_DOMAIN) || APP_DOMAIN;
+const EMAIL_DOMAIN = normalizeHost(process.env.MAILEROO_FROM_DOMAIN) || APP_DOMAIN;
 const CONTACT_EMAIL = process.env.CONTACT_ADMIN_EMAIL || `info@${EMAIL_DOMAIN}`;
 
 const FROM_SECURITY = resolveSender(
-  process.env.RESEND_FROM_SECURITY ||
-    process.env.RESEND_FROM_EMAIL,
+  process.env.MAILEROO_FROM_SECURITY ||
+    process.env.MAILEROO_FROM_EMAIL,
   "security"
 );
 const FROM_ORDERS = resolveSender(
-  process.env.RESEND_FROM_ORDERS ||
-    process.env.RESEND_FROM_EMAIL,
+  process.env.MAILEROO_FROM_ORDERS ||
+    process.env.MAILEROO_FROM_EMAIL,
   "orders"
 );
 const FROM_NOREPLY = resolveSender(
-  process.env.RESEND_FROM_NOREPLY ||
-    process.env.RESEND_FROM_EMAIL,
+  process.env.MAILEROO_FROM_NOREPLY ||
+    process.env.MAILEROO_FROM_EMAIL,
   "noreply"
 );
+
+const REPLY_TO_EMAIL = normalizeEmail(
+  process.env.MAILEROO_REPLY_TO_EMAIL || CONTACT_EMAIL
+);
+
+function toEmailObject(address: string, displayName?: string) {
+  return { address, ...(displayName ? { display_name: displayName } : {}) };
+}
 
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   from?: string;
+  fromName?: string;
 }
 
-export async function sendEmail({ to, subject, html, from = FROM_NOREPLY }: EmailOptions) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn("[Email] RESEND_API_KEY not set, email not sent");
-    return { success: false, error: "RESEND_API_KEY not configured" };
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  from = FROM_NOREPLY,
+  fromName,
+}: EmailOptions) {
+  const sendingKey = process.env.MAILEROO_SENDING_KEY;
+  if (!sendingKey) {
+    console.warn("[Email] MAILEROO_SENDING_KEY not set, email not sent");
+    return { success: false, error: "MAILEROO_SENDING_KEY not configured" };
   }
 
+  const body = {
+    from: toEmailObject(from, fromName),
+    to: [toEmailObject(to)],
+    subject,
+    html,
+    reply_to: toEmailObject(REPLY_TO_EMAIL),
+  };
+
+  console.log("[Email] Sending:", JSON.stringify({
+    to,
+    from: `${fromName ? fromName + " " : ""}<${from}>`,
+    subject,
+    reply_to: REPLY_TO_EMAIL,
+    html_length: html.length,
+  }));
+
   try {
-    const { data, error } = await resend.emails.send({
-      from,
-      to,
-      subject,
-      html,
+    const response = await fetch(MAILEROO_API, {
+      method: "POST",
+      headers: {
+        "X-API-Key": sendingKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
 
-    if (error) {
-      console.error("[Email] Resend error:", error);
-      return { success: false, error };
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      console.error("[Email] Maileroo error:", JSON.stringify({
+        status: response.status,
+        to,
+        from,
+        subject,
+        error: result.message || result,
+      }));
+      return {
+        success: false,
+        error: result.message || `Maileroo responded with status ${response.status}`,
+      };
     }
 
-    return { success: true, data };
+    console.log("[Email] Sent successfully:", JSON.stringify({
+      to,
+      from,
+      subject,
+      reference_id: result.data?.reference_id,
+    }));
+    return { success: true, data: result.data };
   } catch (error) {
-    console.error("[Email] Send error:", error);
+    console.error("[Email] Send error:", JSON.stringify({
+      to,
+      from,
+      subject,
+      error: error instanceof Error ? error.message : String(error),
+    }));
     return { success: false, error };
   }
 }
@@ -343,7 +397,7 @@ export async function sendContactInquiryEmail({
   message: string;
 }) {
   const adminEmail = CONTACT_EMAIL;
-  
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -374,7 +428,7 @@ export async function sendContactInquiryEmail({
             <div class="logo">Impact<span>Store</span></div>
             <p style="color: #c9a227; margin: 10px 0 0 0; font-size: 14px;">New Contact Form Submission</p>
           </div>
-          
+
           <div class="content">
             <div class="section">
               <div class="section-title">Sender Information</div>
@@ -407,7 +461,7 @@ export async function sendContactInquiryEmail({
             </div>
 
             <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee;">
-              <a href="mailto:${email}?subject=Re: ${encodeURIComponent(subject)}" 
+              <a href="mailto:${email}?subject=Re: ${encodeURIComponent(subject)}"
                  style="display: inline-block; background: linear-gradient(135deg, #1f4f8f 0%, #fbbf24 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
                 Reply to ${name}
               </a>
@@ -471,7 +525,7 @@ export async function sendContactAcknowledgmentEmail({
           <div class="header">
             <div class="logo">Impact<span>Store</span></div>
           </div>
-          
+
           <div class="content">
             <div class="success-banner">
               <h2>✓ Message Received!</h2>
@@ -479,9 +533,9 @@ export async function sendContactAcknowledgmentEmail({
             </div>
 
             <p>Hi ${name},</p>
-            
+
             <p>We&apos;ve received your message regarding <strong>${subject}</strong> and wanted to let you know that we&apos;re on it!</p>
-            
+
             <p>Our team typically responds to inquiries within 24-48 business hours. If your matter is urgent, please feel free to reach out to us directly at <a href="mailto:${CONTACT_EMAIL}" style="color: #1f4f8f;">${CONTACT_EMAIL}</a>.</p>
 
             <div class="info-box">
@@ -509,7 +563,7 @@ export async function sendContactAcknowledgmentEmail({
             <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #fff;">Impact Store</p>
             <p style="margin: 0 0 5px 0;">ICT Hardware and Business Technology</p>
             <p style="margin: 15px 0 0 0;">
-              <a href="${APP_URL}">Visit Website</a> | 
+              <a href="${APP_URL}">Visit Website</a> |
               <a href="${APP_URL}/contact">Contact Support</a>
             </p>
             <p style="margin: 15px 0 0 0; opacity: 0.6;">This email was sent to ${to} in response to your contact form submission.</p>
@@ -756,6 +810,13 @@ export async function sendOrderConfirmationEmail({
     postalCode: string;
   };
 }) {
+  console.log("[Email] Order confirmation triggered:", JSON.stringify({
+    to,
+    name,
+    orderId: orderId.slice(-8).toUpperCase(),
+    items_count: items.length,
+    total: `R${total.toLocaleString()}`,
+  }));
   const orderNumber = orderId.slice(-8).toUpperCase();
   const itemsHtml = items
     .map(
@@ -824,7 +885,7 @@ export async function sendOrderConfirmationEmail({
             <div class="logo">Impact<span>Store</span></div>
             <div class="order-badge">Order #${orderNumber}</div>
           </div>
-          
+
           <div class="content">
             <div class="success-banner">
               <h2>🎉 Payment Successful!</h2>
@@ -910,7 +971,7 @@ export async function sendOrderConfirmationEmail({
             <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #fff;">Impact Store</p>
             <p style="margin: 0 0 5px 0;">ICT Hardware and Business Technology</p>
             <p style="margin: 15px 0 0 0;">
-              <a href="${APP_URL}">Visit Website</a> | 
+              <a href="${APP_URL}">Visit Website</a> |
               <a href="${APP_URL}/contact">Contact Support</a>
             </p>
             <p style="margin: 15px 0 0 0; opacity: 0.6;">This email was sent to ${to} regarding your order.</p>
@@ -925,5 +986,6 @@ export async function sendOrderConfirmationEmail({
     subject: `Order Confirmed #${orderNumber} - Impact Store`,
     html,
     from: FROM_ORDERS,
+    fromName: "Impact Store",
   });
 }
