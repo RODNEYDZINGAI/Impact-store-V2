@@ -12,6 +12,7 @@ const adminLinks = [
   { href: "/admin/articles", label: "Articles" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/refunds", label: "Refunds" },
   { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/users", label: "Users" },

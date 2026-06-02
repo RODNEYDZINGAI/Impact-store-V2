@@ -7,6 +7,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import CartPreview from "@/components/CartPreview";
 
 const productLinks = [
   { href: "/products", label: "All Products" },
@@ -149,18 +150,23 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <Link
-              href="/cart"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
-              aria-label="Cart"
-            >
-              <ShoppingBag className="h-4 w-4" />
-              {itemCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#fbbf24] px-1 text-[10px] font-bold text-[#1f2937]">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
+            <div className="group relative">
+              <Link
+                href="/cart"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                aria-label={`Cart${itemCount > 0 ? `, ${itemCount} item${itemCount > 1 ? "s" : ""}` : ""}`}
+              >
+                <ShoppingBag className="h-4 w-4" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#fbbf24] px-1 text-[10px] font-bold text-[#1f2937]">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+              <div className="invisible absolute right-0 top-full z-50 mt-1 hidden w-80 rounded-2xl border border-slate-200 bg-white opacity-0 shadow-xl transition sm:block group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <CartPreview />
+              </div>
+            </div>
 
             {/* User dropdown */}
             {session ? (

@@ -12,6 +12,7 @@ interface FilterBarProps {
   currentSubcategory?: string;
   currentCondition?: string;
   currentSearch?: string;
+  currentInStock?: string;
 }
 
 const conditions = ["All", "New", "Refurbished", "Used"];
@@ -23,6 +24,7 @@ export default function FilterBar({
   currentSubcategory,
   currentCondition,
   currentSearch,
+  currentInStock,
 }: FilterBarProps) {
   const router = useRouter();
   const [search, setSearch] = useState(currentSearch || "");
@@ -34,6 +36,7 @@ export default function FilterBar({
       categorySlug: currentCategorySlug,
       subcategory: currentSubcategory,
       condition: currentCondition,
+      inStock: currentInStock,
       search,
       ...updates,
     };
@@ -42,6 +45,7 @@ export default function FilterBar({
     if (next.categorySlug) params.set("categorySlug", next.categorySlug);
     if (next.subcategory) params.set("subcategory", next.subcategory);
     if (next.condition && next.condition !== "All") params.set("condition", next.condition);
+    if (next.inStock) params.set("inStock", next.inStock);
     if (next.search) params.set("search", next.search);
 
     router.push(`/products${params.toString() ? `?${params.toString()}` : ""}`);
@@ -140,7 +144,7 @@ export default function FilterBar({
         );
       })}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {conditions.map((cond) => (
           <button
             key={cond}
@@ -154,6 +158,17 @@ export default function FilterBar({
             {cond}
           </button>
         ))}
+        <span className="h-4 w-px bg-slate-200" aria-hidden="true" />
+        <button
+          onClick={() => updateFilters({ inStock: currentInStock ? undefined : "true" })}
+          className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition ${
+            currentInStock
+              ? "border border-[#fbbf24] bg-[#fbbf24]/20 text-[#1f2937]"
+              : "border border-slate-200 bg-white text-slate-500 hover:border-[#fbbf24]"
+          }`}
+        >
+          In Stock
+        </button>
       </div>
     </div>
   );
