@@ -761,7 +761,8 @@ export async function sendQuoteAcknowledgmentEmail({
           </div>
           <div class="footer">
             <p style="margin:0 0 5px;font-size:15px;font-weight:600;color:#fff;">Impact Store</p>
-            <p style="margin:0 0 10px;">ICT Hardware and Business Technology</p>
+            <p style="margin:0 0 5px;">ICT Hardware and Business Technology</p>
+            <p style="margin:0 0 10px;opacity:0.8;">Impact Store is a trading name of Impact Holdings Group</p>
             <p style="margin:0;"><a href="${APP_URL}">Visit Website</a> | <a href="${APP_URL}/contact">Contact Support</a></p>
             <p style="margin:12px 0 0;opacity:0.6;">This email was sent to ${to} in response to your quote request.</p>
           </div>
@@ -968,6 +969,7 @@ export async function sendOrderConfirmationEmail({
           <div class="footer">
             <p style="margin: 0 0 8px 0; font-size: 15px; font-weight: 600; color: #fff;">Impact Store</p>
             <p style="margin: 0 0 5px 0;">ICT Hardware and Business Technology</p>
+            <p style="margin: 0 0 5px 0; opacity: 0.8;">Impact Store is a trading name of Impact Holdings Group</p>
             <p style="margin: 15px 0 0 0;">
               <a href="${APP_URL}">Visit Website</a> |
               <a href="${APP_URL}/contact">Contact Support</a>

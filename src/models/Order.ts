@@ -20,6 +20,11 @@ export interface IShippingAddress {
   phone: string;
 }
 
+export interface IOrderNote {
+  text: string;
+  createdAt: Date;
+}
+
 export interface IOrder extends Document {
   user: Types.ObjectId;
   items: IOrderItem[];
@@ -38,6 +43,7 @@ export interface IOrder extends Document {
   couponDiscount: number;
   promotionsRecorded: boolean;
   notes?: string;
+  noteEntries: IOrderNote[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -87,6 +93,12 @@ const OrderSchema = new Schema<IOrder>(
     couponDiscount: { type: Number, default: 0 },
     promotionsRecorded: { type: Boolean, default: false },
     notes: { type: String },
+    noteEntries: [
+      new Schema<IOrderNote>(
+        { text: { type: String, required: true }, createdAt: { type: Date, required: true } },
+        { _id: false }
+      ),
+    ],
   },
   { timestamps: true }
 );

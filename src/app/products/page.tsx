@@ -15,6 +15,7 @@ interface ProductSearchParams {
   subcategory?: string;
   condition?: string;
   search?: string;
+  inStock?: string;
 }
 
 interface Props {
@@ -50,7 +51,7 @@ function getCategoryKeyForSEO(
 }
 
 function hasFilterPermutation(params: ProductSearchParams) {
-  return Boolean(params.search || params.condition);
+  return Boolean(params.search || params.condition || params.inStock);
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
@@ -114,6 +115,19 @@ export default async function ProductsPage({ searchParams }: Props) {
   const filters: Record<string, unknown>[] = [visibilityFilter, taxonomyFilter];
 
   if (params.condition) filters.push({ condition: params.condition });
+  if (params.inStock === "true") {
+    filters.push({
+      $or: [
+        {
+          $and: [
+            { $or: [{ variants: { $exists: false } }, { variants: { $size: 0 } }] },
+            { stock: { $gt: 0 } },
+          ],
+        },
+        { "variants.stock": { $gt: 0 } },
+      ],
+    });
+  }
   if (params.search) {
     filters.push({
       $or: [
@@ -169,6 +183,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           currentSubcategory={params.subcategory}
           currentCondition={params.condition}
           currentSearch={params.search}
+          currentInStock={params.inStock}
         />
 
         <div className="mt-8">
