@@ -215,7 +215,7 @@ Inject a `Organization` + `LocalBusiness` schema in the root layout, available o
     "addressCountry": "ZA"
   },
   "telephone": "+27100013608",
-  "email": "info@impactholdings.co.za",
+  "email": "info@impactstore.co.za",
   "priceRange": "R100 - R50000+",
   "areaServed": {
     "@type": "Country",

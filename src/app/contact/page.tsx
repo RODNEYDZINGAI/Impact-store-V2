@@ -94,10 +94,10 @@ export default function ContactPage() {
             <h3 className="font-semibold text-[#1f2937]">Email</h3>
             <p className="mt-2 text-sm text-slate-500">
               <a
-                href="mailto:info@impactholdings.co.za"
+                href="mailto:info@impactstore.co.za"
                 className="transition hover:text-[#1f4f8f]"
               >
-                info@impactholdings.co.za
+                info@impactstore.co.za
               </a>
             </p>
           </div>

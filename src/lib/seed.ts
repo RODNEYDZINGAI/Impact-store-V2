@@ -391,11 +391,11 @@ async function seed() {
     const hashedPassword = await bcrypt.hash("admin123", 10);
     await User.create({
       name: "Admin",
-      email: "admin@impactholdings.co.za",
+      email: "admin@impactstore.co.za",
       password: hashedPassword,
       role: "admin",
     });
-    console.log("Created admin user (admin@impactholdings.co.za / admin123)");
+    console.log("Created admin user (admin@impactstore.co.za / admin123)");
 
     await mongoose.disconnect();
     console.log("Seed complete!");
