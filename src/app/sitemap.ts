@@ -24,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/privacy-policy", changeFrequency: "monthly" as const, priority: 0.5 },
     { path: "/terms-of-service", changeFrequency: "monthly" as const, priority: 0.5 },
     { path: "/shipping-policy", changeFrequency: "monthly" as const, priority: 0.5 },
-    { path: "/refund-policy", changeFrequency: "monthly" as const, priority: 0.5 },
+    { path: "/returns-policy", changeFrequency: "monthly" as const, priority: 0.5 },
     { path: "/laybuy-policy", changeFrequency: "monthly" as const, priority: 0.5 },
     { path: "/warranty-policy", changeFrequency: "monthly" as const, priority: 0.5 },
   ].map((page) => ({
