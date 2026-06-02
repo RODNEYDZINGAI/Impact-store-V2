@@ -57,8 +57,8 @@ export default function Navbar() {
             <a href="tel:+27100013608" className="transition hover:text-white/80">
               +27 10 001 3608
             </a>
-            <a href="mailto:info@impactholdings.co.za" className="transition hover:text-white/80">
-              info@impactholdings.co.za
+            <a href="mailto:info@impactstore.co.za" className="transition hover:text-white/80">
+              info@impactstore.co.za
             </a>
           </div>
           <Link href="/quote?source=top-bar-bulk-orders" className="font-semibold text-[#fbbf24] transition hover:text-[#f59e0b]">

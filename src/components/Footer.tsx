@@ -59,7 +59,7 @@ export default function Footer() {
                 ["Request a Quote", "/quote?source=footer"],
                 ["Contact Us", "/contact"],
                 ["Shipping Information", "/shipping-policy"],
-                ["Returns Policy", "/refund-policy"],
+                ["Refund and Returns Policy", "/refund-policy"],
                 ["Warranty Policy", "/warranty-policy"],
               ].map(([label, href]) => (
                 <li key={label}>
@@ -76,8 +76,8 @@ export default function Footer() {
             <ul className="mt-4 space-y-3 text-sm text-white/80">
               <li>16 Baker St, Rosebank, Johannesburg, 2196</li>
               <li>
-                <a href="mailto:info@impactholdings.co.za" className="transition hover:text-[#fbbf24]">
-                  info@impactholdings.co.za
+                <a href="mailto:info@impactstore.co.za" className="transition hover:text-[#fbbf24]">
+                  info@impactstore.co.za
                 </a>
               </li>
               <li>
