@@ -54,8 +54,8 @@ export default function Navbar() {
       <div className="hidden bg-[#1f4f8f] text-white sm:block">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-2 text-xs">
           <div className="flex items-center gap-6">
-            <a href="tel:+27785229194" className="transition hover:text-white/80">
-              +27 78 522 9194
+            <a href="tel:+27100013608" className="transition hover:text-white/80">
+              +27 10 001 3608
             </a>
             <a href="mailto:info@impactstore.co.za" className="transition hover:text-white/80">
               info@impactstore.co.za
