@@ -1,7 +1,10 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
+import Coupon from "@/models/Coupon";
 import Order from "@/models/Order";
+import User from "@/models/User";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 function encodePayFastValue(value: string) {
   return encodeURIComponent(value.trim()).replace(/%20/g, "+");
@@ -69,6 +72,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    const wasPaid = order.paymentStatus === "paid";
+
     order.paymentStatus = paymentStatus;
     order.paymentId = String(payload.pf_payment_id || "payfast");
     if (paymentStatus === "paid") {
@@ -79,6 +84,77 @@ export async function POST(req: NextRequest) {
       .join("\n");
 
     await order.save();
+
+    if (paymentStatus === "paid" && !wasPaid && !order.promotionsRecorded) {
+      const promotionUpdates: Promise<unknown>[] = [];
+
+      if (order.couponCode) {
+        promotionUpdates.push(
+          Coupon.updateOne({ code: order.couponCode }, { $inc: { usedCount: 1 } })
+        );
+      }
+
+      if (order.referrer) {
+        promotionUpdates.push(
+          User.updateOne(
+            { _id: order.referrer },
+            {
+              $inc: {
+                "referralStats.usageCount": 1,
+                "referralStats.revenue": order.total,
+                "referralStats.discountIssued": order.referralDiscount || 0,
+              },
+              $addToSet: { "referralStats.referredOrders": order._id },
+            }
+          )
+        );
+        promotionUpdates.push(
+          User.updateOne(
+            { _id: order.user, referredBy: { $exists: false } },
+            { $set: { referredBy: order.referrer } }
+          )
+        );
+      }
+
+      if (promotionUpdates.length > 0) {
+        await Promise.all(promotionUpdates);
+        order.promotionsRecorded = true;
+        await order.save();
+      }
+    }
+
+    if (paymentStatus === "paid" && !wasPaid) {
+      console.log("[PayFast] Payment confirmed, triggering order email:", JSON.stringify({
+        orderId: order._id.toString().slice(-8).toUpperCase(),
+        paymentStatus,
+        wasPaid,
+        userId: order.user,
+      }));
+      try {
+        const user = await User.findById(order.user);
+        if (user) {
+          console.log("[PayFast] User found, sending order confirmation to:", user.email);
+          await sendOrderConfirmationEmail({
+            to: user.email,
+            name: user.name,
+            orderId: order._id.toString(),
+            items: order.items.map((item: { name: string; quantity: number; price: number }) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            subtotal: order.subtotal || order.items.reduce((sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity, 0),
+            shipping: 99,
+            discount: order.discount || 0,
+            total: order.total,
+            shippingAddress: order.shippingAddress,
+          });
+        }
+      } catch (emailError) {
+        console.error("[PayFast] Failed to send order confirmation email:", emailError);
+        // Don't fail the webhook if email fails
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
