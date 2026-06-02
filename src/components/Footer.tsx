@@ -59,7 +59,7 @@ export default function Footer() {
                 ["Request a Quote", "/quote?source=footer"],
                 ["Contact Us", "/contact"],
                 ["Shipping Information", "/shipping-policy"],
-                ["Refund and Returns Policy", "/refund-policy"],
+                ["Refund and Returns Policy", "/returns-policy"],
                 ["Warranty Policy", "/warranty-policy"],
               ].map(([label, href]) => (
                 <li key={label}>
@@ -81,8 +81,8 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="tel:+27785229194" className="transition hover:text-[#fbbf24]">
-                  +27 78 522 9194
+                <a href="tel:+27100013608" className="transition hover:text-[#fbbf24]">
+                  +27 10 001 3608
                 </a>
               </li>
             </ul>

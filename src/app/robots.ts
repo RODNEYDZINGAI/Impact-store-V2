@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           "/privacy-policy",
           "/terms-of-service",
           "/shipping-policy",
-          "/refund-policy",
+          "/returns-policy",
           "/laybuy-policy",
           "/warranty-policy",
         ],
