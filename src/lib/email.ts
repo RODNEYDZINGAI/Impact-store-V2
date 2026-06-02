@@ -77,15 +77,23 @@ export async function sendEmail({
     return { success: false, error: "MAILEROO_SENDING_KEY not configured" };
   }
 
-  try {
-    const body = {
-      from: toEmailObject(from, fromName),
-      to: [toEmailObject(to)],
-      subject,
-      html,
-      reply_to: toEmailObject(REPLY_TO_EMAIL),
-    };
+  const body = {
+    from: toEmailObject(from, fromName),
+    to: [toEmailObject(to)],
+    subject,
+    html,
+    reply_to: toEmailObject(REPLY_TO_EMAIL),
+  };
 
+  console.log("[Email] Sending:", JSON.stringify({
+    to,
+    from: `${fromName ? fromName + " " : ""}<${from}>`,
+    subject,
+    reply_to: REPLY_TO_EMAIL,
+    html_length: html.length,
+  }));
+
+  try {
     const response = await fetch(MAILEROO_API, {
       method: "POST",
       headers: {
@@ -98,16 +106,33 @@ export async function sendEmail({
     const result = await response.json();
 
     if (!response.ok || !result.success) {
-      console.error("[Email] Maileroo error:", result);
+      console.error("[Email] Maileroo error:", JSON.stringify({
+        status: response.status,
+        to,
+        from,
+        subject,
+        error: result.message || result,
+      }));
       return {
         success: false,
         error: result.message || `Maileroo responded with status ${response.status}`,
       };
     }
 
+    console.log("[Email] Sent successfully:", JSON.stringify({
+      to,
+      from,
+      subject,
+      reference_id: result.data?.reference_id,
+    }));
     return { success: true, data: result.data };
   } catch (error) {
-    console.error("[Email] Send error:", error);
+    console.error("[Email] Send error:", JSON.stringify({
+      to,
+      from,
+      subject,
+      error: error instanceof Error ? error.message : String(error),
+    }));
     return { success: false, error };
   }
 }
@@ -785,6 +810,13 @@ export async function sendOrderConfirmationEmail({
     postalCode: string;
   };
 }) {
+  console.log("[Email] Order confirmation triggered:", JSON.stringify({
+    to,
+    name,
+    orderId: orderId.slice(-8).toUpperCase(),
+    items_count: items.length,
+    total: `R${total.toLocaleString()}`,
+  }));
   const orderNumber = orderId.slice(-8).toUpperCase();
   const itemsHtml = items
     .map(
