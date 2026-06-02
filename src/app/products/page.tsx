@@ -127,7 +127,7 @@ export default async function ProductsPage({ searchParams }: Props) {
   }
 
   const products = await Product.find(mergeMongoFilters(...filters))
-    .select("-sourceUrl")
+    .select("-sourceUrl -supplier")
     .sort({ createdAt: -1 })
     .lean();
   const selectedCategory = findTaxonomyCategory(taxonomy, params.categorySlug || params.category);

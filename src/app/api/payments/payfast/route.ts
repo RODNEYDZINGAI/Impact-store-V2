@@ -14,6 +14,19 @@ import {
   CheckoutPricingError,
 } from "@/lib/checkout-pricing";
 
+function getPublicBaseUrl(req: NextRequest) {
+  const forwardedHost = req.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || req.headers.get("host")?.split(",")[0]?.trim();
+  const forwardedProto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const proto = forwardedProto || (host?.startsWith("localhost") ? "http" : "https");
+
+  if (!host) {
+    return process.env.NEXT_PUBLIC_BASE_URL?.trim();
+  }
+
+  return `${proto}://${host}`;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -124,6 +137,7 @@ export async function POST(req: NextRequest) {
       name: session.user.name,
       itemName: `Impact Store Order #${orderId.slice(-6).toUpperCase()}`,
       itemDescription: pricing.itemNames,
+      baseUrl: getPublicBaseUrl(req),
     });
 
     return NextResponse.json({

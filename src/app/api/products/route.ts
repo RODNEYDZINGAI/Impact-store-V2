@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    body.supplier = typeof body.supplier === "string" ? body.supplier.trim() || undefined : undefined;
 
     // Auto-generate SKU if not provided
     if (!body.sku || !body.sku.trim()) {

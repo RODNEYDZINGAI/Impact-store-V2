@@ -7,6 +7,7 @@ interface CreatePayFastPaymentParams {
   name?: string | null;
   itemName: string;
   itemDescription?: string;
+  baseUrl?: string;
 }
 
 type PayFastParams = Record<string, string>;
@@ -44,6 +45,10 @@ function trimDescription(description?: string) {
   return (description || "").slice(0, 255);
 }
 
+function normalizeBaseUrl(baseUrl?: string | null) {
+  return baseUrl?.trim().replace(/\/+$/, "");
+}
+
 export function generatePayFastSignature(params: PayFastParams, passphrase?: string) {
   const pairs = PAYFAST_FIELD_ORDER.flatMap((key) => {
     const value = params[key];
@@ -61,11 +66,13 @@ export function createPayFastRedirectUrl(params: CreatePayFastPaymentParams) {
   const merchantId = process.env.PAYFAST_MERCHANT_ID?.trim();
   const merchantKey = process.env.PAYFAST_MERCHANT_KEY?.trim();
   const processUrl = (
-    process.env.PAYFAST_SANDBOX_URL ||
     process.env.PAYFAST_URL ||
-    "https://sandbox.payfast.co.za/eng/process"
+    process.env.PAYFAST_SANDBOX_URL ||
+    "https://www.payfast.co.za/eng/process"
   ).trim();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim();
+  const baseUrl = normalizeBaseUrl(
+    params.baseUrl || process.env.NEXT_PUBLIC_BASE_URL
+  );
 
   if (!merchantId || !merchantKey || !baseUrl) {
     throw new Error("PayFast environment variables are not configured");

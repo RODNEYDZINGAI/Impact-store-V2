@@ -27,11 +27,22 @@ const paymentMethodLabels: Record<PaymentMethod, string> = {
   payfast: "PayFast",
 };
 
+const paymentMethodStatus: Record<PaymentMethod, { available: boolean; helperText: string }> = {
+  bobpay: {
+    available: false,
+    helperText: "Coming soon",
+  },
+  payfast: {
+    available: true,
+    helperText: "Secure online payment",
+  },
+};
+
 export default function CheckoutPage() {
   const { items, total } = useCart();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bobpay");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payfast");
   const [form, setForm] = useState({
     fullName: "", address: "", city: "", province: "", postalCode: "", phone: "",
   });
@@ -117,6 +128,11 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       const selectedPaymentLabel = paymentMethodLabels[paymentMethod];
+      if (!paymentMethodStatus[paymentMethod].available) {
+        alert(`${selectedPaymentLabel} is coming soon. Please choose PayFast for now.`);
+        return;
+      }
+
       const res = await fetch(`/api/payments/${paymentMethod}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -326,20 +342,33 @@ export default function CheckoutPage() {
                 <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
                   {(["bobpay", "payfast"] as PaymentMethod[]).map((method) => {
                     const selected = paymentMethod === method;
+                    const status = paymentMethodStatus[method];
                     return (
                       <button
                         key={method}
                         type="button"
-                        onClick={() => setPaymentMethod(method)}
+                        onClick={() => {
+                          if (status.available) setPaymentMethod(method);
+                        }}
+                        disabled={!status.available}
                         className={`rounded-xl border px-4 py-3 text-left transition ${
                           selected
                             ? "border-steel bg-steel/10 text-steel"
-                            : "border-gray-200 bg-white text-gray-700 hover:border-steel/60"
+                            : status.available
+                            ? "border-gray-200 bg-white text-gray-700 hover:border-steel/60"
+                            : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400"
                         }`}
                         aria-pressed={selected}
                       >
-                        <span className="block text-sm font-semibold">{paymentMethodLabels[method]}</span>
-                        <span className="mt-1 block text-xs text-gray-500">Secure online payment</span>
+                        <span className="flex items-center justify-between gap-3 text-sm font-semibold">
+                          <span>{paymentMethodLabels[method]}</span>
+                          {!status.available && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                              Coming Soon
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">{status.helperText}</span>
                       </button>
                     );
                   })}

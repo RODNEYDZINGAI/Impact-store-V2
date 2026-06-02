@@ -19,6 +19,7 @@ if (r2PublicUrl) {
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
+    localPatterns: [{ pathname: "/**" }],
     remotePatterns,
   },
   reactCompiler: true,

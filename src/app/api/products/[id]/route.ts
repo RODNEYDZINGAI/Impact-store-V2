@@ -41,6 +41,7 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     let shouldUnsetSourceUrl = false;
+    let shouldUnsetSupplier = false;
     if (Object.prototype.hasOwnProperty.call(body, "sourceUrl")) {
       try {
         body.sourceUrl = validateProductSourceUrl(body.sourceUrl);
@@ -53,6 +54,13 @@ export async function PUT(
       if (body.sourceUrl === undefined) {
         delete body.sourceUrl;
         shouldUnsetSourceUrl = true;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "supplier")) {
+      body.supplier = typeof body.supplier === "string" ? body.supplier.trim() || undefined : undefined;
+      if (body.supplier === undefined) {
+        delete body.supplier;
+        shouldUnsetSupplier = true;
       }
     }
 
@@ -68,8 +76,11 @@ export async function PUT(
     }
 
     // Use $set to properly update fields including published
-    const update = shouldUnsetSourceUrl
-      ? { $set: body, $unset: { sourceUrl: "" } }
+    const unsetFields: Record<string, ""> = {};
+    if (shouldUnsetSourceUrl) unsetFields.sourceUrl = "";
+    if (shouldUnsetSupplier) unsetFields.supplier = "";
+    const update = Object.keys(unsetFields).length > 0
+      ? { $set: body, $unset: unsetFields }
       : { $set: body };
     const product = await Product.findByIdAndUpdate(id, update, {
       returnDocument: "after",

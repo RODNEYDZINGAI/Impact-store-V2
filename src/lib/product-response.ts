@@ -5,7 +5,7 @@ type ProductLike = Record<string, unknown> & {
 function normalizeProduct(product: ProductLike) {
   const data = typeof product.toObject === "function" ? product.toObject() : product;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { sourceUrl, ...publicProduct } = data;
+  const { sourceUrl, supplier, ...publicProduct } = data;
   return publicProduct;
 }
 

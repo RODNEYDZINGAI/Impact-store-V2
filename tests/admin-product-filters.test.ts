@@ -12,6 +12,7 @@ const products = [
     _id: "p1",
     name: "iPhone 13 Pro",
     brand: "Apple",
+    supplier: "Scoop",
     category: "Phones",
     categorySlug: "phones",
     subcategory: "iPhones",
@@ -23,6 +24,7 @@ const products = [
     _id: "p2",
     name: "Galaxy S22",
     brand: "Samsung",
+    supplier: "Rectron",
     category: "Phones",
     categorySlug: "phones",
     subcategory: "Android",
@@ -34,6 +36,7 @@ const products = [
     _id: "p3",
     name: "MacBook Air",
     brand: "Apple",
+    supplier: "Tarsus",
     category: "Laptops",
     categorySlug: "laptops",
     subcategory: "MacBooks",
@@ -53,6 +56,15 @@ test("applies status, category, brand, condition, and stock filters together", (
   });
 
   assert.deepEqual(filtered.map((p) => p._id), ["p1"]);
+});
+
+test("admin product search includes supplier names", () => {
+  const filtered = applyAdminProductFilters(products, {
+    ...createDefaultAdminProductFilters(),
+    search: "rectron",
+  });
+
+  assert.deepEqual(filtered.map((p) => p._id), ["p2"]);
 });
 
 test("treats products with undefined published as published for legacy data", () => {
