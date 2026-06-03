@@ -18,8 +18,13 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = (await req.json()) as { status?: string; notes?: string };
+    const body = (await req.json()) as {
+      status?: string;
+      notes?: string;
+      noteEntry?: string;
+    };
     const update: { status?: OrderStatus; notes?: string } = {};
+    const push: { noteEntries?: { text: string; createdAt: Date } } = {};
 
     if (body.status !== undefined) {
       if (!VALID_STATUSES.includes(body.status as OrderStatus)) {
@@ -35,16 +40,24 @@ export async function PATCH(
       update.notes = body.notes.trim();
     }
 
-    if (Object.keys(update).length === 0) {
+    if (body.noteEntry !== undefined && body.noteEntry.trim()) {
+      push.noteEntries = { text: body.noteEntry.trim(), createdAt: new Date() };
+    }
+
+    if (Object.keys(update).length === 0 && !push.noteEntries) {
       return NextResponse.json(
-        { error: "Provide a status or notes update" },
+        { error: "Provide a status, notes, or noteEntry update" },
         { status: 400 }
       );
     }
 
     await dbConnect();
 
-    const order = await Order.findByIdAndUpdate(id, update, {
+    const mongoUpdate: Record<string, unknown> = {};
+    if (Object.keys(update).length > 0) mongoUpdate.$set = update;
+    if (push.noteEntries) mongoUpdate.$push = { noteEntries: push.noteEntries };
+
+    const order = await Order.findByIdAndUpdate(id, mongoUpdate, {
       new: true,
       runValidators: true,
     });

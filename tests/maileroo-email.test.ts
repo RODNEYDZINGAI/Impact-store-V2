@@ -42,3 +42,66 @@ test("email module supports reply_to parameter for Maileroo", () => {
   assert.match(content, /reply_to/, "should include reply_to for Maileroo");
   assert.match(content, /MAILEROO_REPLY_TO_EMAIL/, "should use MAILEROO_REPLY_TO_EMAIL env var");
 });
+
+test("order confirmation email footer includes Impact Holdings Group trading-name disclosure", () => {
+  const content = readFileSync(EMAIL_MODULE, "utf8");
+
+  // The sendOrderConfirmationEmail template must carry the trading-name statement
+  const orderFnStart = content.indexOf("export async function sendOrderConfirmationEmail(");
+  assert.ok(orderFnStart !== -1, "sendOrderConfirmationEmail must exist");
+
+  const orderFnBody = content.slice(orderFnStart);
+  assert.match(
+    orderFnBody,
+    /Impact Store is a trading name of Impact Holdings Group/,
+    "order confirmation email must state the trading name of Impact Holdings Group"
+  );
+});
+
+test("quote acknowledgment email footer includes Impact Holdings Group trading-name disclosure", () => {
+  const content = readFileSync(EMAIL_MODULE, "utf8");
+
+  const quoteFnStart = content.indexOf("export async function sendQuoteAcknowledgmentEmail(");
+  assert.ok(quoteFnStart !== -1, "sendQuoteAcknowledgmentEmail must exist");
+
+  const quoteFnBody = content.slice(quoteFnStart);
+  assert.match(
+    quoteFnBody,
+    /Impact Store is a trading name of Impact Holdings Group/,
+    "quote acknowledgment email must state the trading name of Impact Holdings Group"
+  );
+});
+
+test("all email-sending functions route through the shared sendEmail helper", () => {
+  const content = readFileSync(EMAIL_MODULE, "utf8");
+
+  // Every exported async function that sends email must call sendEmail().
+  // We find each function's body by slicing from its declaration to the
+  // next exported function declaration (or end-of-file), avoiding fixed
+  // char-count limits that break on large template strings.
+  const fnNames = [
+    "sendWelcomeEmail",
+    "sendPasswordResetEmail",
+    "sendVerificationCodeEmail",
+    "sendPasswordChangedEmail",
+    "sendContactInquiryEmail",
+    "sendContactAcknowledgmentEmail",
+    "sendQuoteRequestEmail",
+    "sendQuoteAcknowledgmentEmail",
+    "sendOrderConfirmationEmail",
+  ];
+
+  for (let i = 0; i < fnNames.length; i++) {
+    const fn = fnNames[i];
+    const start = content.indexOf(`export async function ${fn}(`);
+    if (start === -1) continue;
+    // Slice up to the next exported declaration or end of file
+    const nextExport = content.indexOf("\nexport ", start + 1);
+    const body = nextExport === -1 ? content.slice(start) : content.slice(start, nextExport);
+    assert.match(body, /return sendEmail\(/, `${fn} must delegate to sendEmail()`);
+  }
+
+  // Only one raw fetch call to the Maileroo API endpoint exists in the module
+  const fetchMatches = [...content.matchAll(/await fetch\(MAILEROO_API/g)];
+  assert.equal(fetchMatches.length, 1, "only sendEmail() itself should call fetch(MAILEROO_API)");
+});

@@ -761,7 +761,8 @@ export async function sendQuoteAcknowledgmentEmail({
           </div>
           <div class="footer">
             <p style="margin:0 0 5px;font-size:15px;font-weight:600;color:#fff;">Impact Store</p>
-            <p style="margin:0 0 10px;">ICT Hardware and Business Technology</p>
+            <p style="margin:0 0 5px;">ICT Hardware and Business Technology</p>
+            <p style="margin:0 0 10px;opacity:0.8;">Impact Store is a trading name of Impact Holdings Group</p>
             <p style="margin:0;"><a href="${APP_URL}">Visit Website</a> | <a href="${APP_URL}/contact">Contact Support</a></p>
             <p style="margin:12px 0 0;opacity:0.6;">This email was sent to ${to} in response to your quote request.</p>
           </div>
@@ -834,8 +835,8 @@ export async function sendOrderConfirmationEmail({
     discount > 0
       ? `
         <tr>
-          <td colspan="2" style="padding: 12px; text-align: right; color: #10b981;">Referral Discount (5%)</td>
-          <td style="padding: 12px; text-align: right; color: #10b981;">-R${discount.toLocaleString()}</td>
+          <td style="padding: 8px 0; color: #6ee7b7; font-size: 14px;">Referral Discount (5%)</td>
+          <td style="padding: 8px 0; text-align: right; color: #6ee7b7; font-size: 14px; white-space: nowrap;">-R${discount.toLocaleString()}</td>
         </tr>
       `
       : "";
@@ -848,35 +849,29 @@ export async function sendOrderConfirmationEmail({
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Order Confirmation - Impact Store</title>
         <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f0f0; margin: 0; padding: 0; }
           .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
           .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); text-align: center; padding: 40px 20px; }
           .logo { font-size: 32px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
           .logo span { color: #c9a227; }
-          .order-badge { display: inline-block; background: rgba(255,255,255,0.1); color: #c9a227; padding: 8px 16px; border-radius: 20px; font-size: 14px; margin-top: 15px; }
+          .order-badge { display: inline-block; background: rgba(255,255,255,0.08); border: 1px solid rgba(201,162,39,0.5); color: #c9a227; padding: 7px 18px; border-radius: 20px; font-size: 13px; margin-top: 16px; letter-spacing: 0.5px; font-weight: 600; }
           .content { padding: 40px 30px; }
-          .success-banner { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
-          .success-banner h2 { margin: 0; font-size: 24px; }
-          .section { margin-bottom: 30px; }
-          .section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 15px; font-weight: 600; }
-          .info-box { background: #f8f9fa; border-radius: 8px; padding: 20px; }
-          .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-          .info-row:last-child { border-bottom: none; }
-          .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          .items-table th { background: #1a1a2e; color: white; padding: 12px; text-align: left; font-weight: 600; }
-          .items-table th:last-child { text-align: right; }
-          .items-table td { padding: 12px; border-bottom: 1px solid #eee; }
-          .items-table td:last-child { text-align: right; }
-          .total-section { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 25px; border-radius: 12px; margin-top: 30px; }
-          .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
-          .total-row.grand-total { font-size: 20px; font-weight: 700; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); }
-          .cta-button { display: inline-block; background: linear-gradient(135deg, #c9a227 0%, #b8941d 100%); color: #1a1a2e; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+          .success-banner { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px 20px; border-radius: 10px; text-align: center; margin-bottom: 32px; }
+          .success-banner h2 { margin: 0; font-size: 22px; font-weight: 700; }
+          .section { margin-bottom: 28px; }
+          .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 12px; font-weight: 700; }
+          .info-box { background: #f8f9fa; border-radius: 8px; padding: 18px 20px; }
+          .items-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+          .items-table th { background: #1a1a2e; color: #ffffff; padding: 11px 14px; text-align: left; font-weight: 600; font-size: 13px; }
+          .items-table th:nth-child(2) { text-align: center; width: 52px; }
+          .items-table th:last-child { text-align: right; white-space: nowrap; }
+          .items-table td { padding: 12px 14px; border-bottom: 1px solid #eeeeee; font-size: 14px; vertical-align: top; }
+          .items-table td:nth-child(2) { text-align: center; color: #555; }
+          .items-table td:last-child { text-align: right; font-weight: 500; white-space: nowrap; }
+          .total-section { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff; padding: 24px; border-radius: 10px; margin-top: 28px; }
+          .cta-button { display: inline-block; background: linear-gradient(135deg, #c9a227 0%, #b8941d 100%); color: #1a1a2e; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; margin-top: 20px; font-size: 15px; }
           .footer { background: #1a1a2e; color: #999; text-align: center; padding: 30px; font-size: 12px; }
           .footer a { color: #c9a227; text-decoration: none; }
-          @media (max-width: 600px) {
-            .content { padding: 30px 20px; }
-            .items-table { font-size: 14px; }
-          }
         </style>
       </head>
       <body>
@@ -888,25 +883,27 @@ export async function sendOrderConfirmationEmail({
 
           <div class="content">
             <div class="success-banner">
-              <h2>🎉 Payment Successful!</h2>
-              <p style="margin: 10px 0 0 0; opacity: 0.9;">Thank you for your order, ${name}</p>
+              <h2>Payment Successful</h2>
+              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 15px;">Thank you for your order, ${name}</p>
             </div>
 
             <div class="section">
               <div class="section-title">Order Details</div>
               <div class="info-box">
-                <div class="info-row">
-                  <span>Order Number</span>
-                  <span style="font-weight: 600; color: #1a1a2e;">#${orderNumber}</span>
-                </div>
-                <div class="info-row">
-                  <span>Order Date</span>
-                  <span>${new Date().toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })}</span>
-                </div>
-                <div class="info-row">
-                  <span>Payment Status</span>
-                  <span style="color: #10b981; font-weight: 600;">✓ Paid</span>
-                </div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 9px 0; border-bottom: 1px solid #e8e8e8; color: #555; font-size: 14px;">Order Number</td>
+                    <td style="padding: 9px 0; border-bottom: 1px solid #e8e8e8; text-align: right; font-weight: 600; color: #1a1a2e; font-size: 14px;">#${orderNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 9px 0; border-bottom: 1px solid #e8e8e8; color: #555; font-size: 14px;">Order Date</td>
+                    <td style="padding: 9px 0; border-bottom: 1px solid #e8e8e8; text-align: right; font-size: 14px;">${new Date().toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 9px 0; color: #555; font-size: 14px;">Payment Status</td>
+                    <td style="padding: 9px 0; text-align: right; color: #10b981; font-weight: 600; font-size: 14px;">Paid</td>
+                  </tr>
+                </table>
               </div>
             </div>
 
@@ -917,7 +914,7 @@ export async function sendOrderConfirmationEmail({
                   <tr>
                     <th>Product</th>
                     <th style="text-align: center;">Qty</th>
-                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: right;">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -929,47 +926,50 @@ export async function sendOrderConfirmationEmail({
             <div class="section">
               <div class="section-title">Shipping Address</div>
               <div class="info-box">
-                <p style="margin: 0; font-weight: 600;">${shippingAddress.fullName}</p>
-                <p style="margin: 5px 0 0 0; color: #666;">${shippingAddress.address}</p>
-                <p style="margin: 5px 0 0 0; color: #666;">${shippingAddress.city}, ${shippingAddress.province}</p>
-                <p style="margin: 5px 0 0 0; color: #666;">${shippingAddress.postalCode}</p>
+                <p style="margin: 0; font-weight: 600; color: #1a1a2e;">${shippingAddress.fullName}</p>
+                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">${shippingAddress.address}</p>
+                <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">${shippingAddress.city}, ${shippingAddress.province}</p>
+                <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">${shippingAddress.postalCode}</p>
               </div>
             </div>
 
             <div class="total-section">
-              <div class="total-row">
-                <span>Subtotal</span>
-                <span>R${subtotal.toLocaleString()}</span>
-              </div>
-              <div class="total-row">
-                <span>Shipping</span>
-                <span>R${shipping.toLocaleString()}</span>
-              </div>
-              ${discountRow}
-              <div class="total-row grand-total">
-                <span>Total Paid</span>
-                <span>R${total.toLocaleString()}</span>
-              </div>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: rgba(255,255,255,0.75); font-size: 14px;">Subtotal</td>
+                  <td style="padding: 8px 0; text-align: right; color: #ffffff; font-size: 14px; white-space: nowrap;">R${subtotal.toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: rgba(255,255,255,0.75); font-size: 14px;">Shipping</td>
+                  <td style="padding: 8px 0; text-align: right; color: #ffffff; font-size: 14px; white-space: nowrap;">R${shipping.toLocaleString()}</td>
+                </tr>
+                ${discountRow}
+                <tr>
+                  <td style="padding: 14px 0 6px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 18px; font-weight: 700; color: #c9a227;">Total Paid</td>
+                  <td style="padding: 14px 0 6px; border-top: 1px solid rgba(255,255,255,0.2); text-align: right; font-size: 18px; font-weight: 700; color: #c9a227; white-space: nowrap;">R${total.toLocaleString()}</td>
+                </tr>
+              </table>
             </div>
 
-            <div style="text-align: center; margin-top: 30px;">
-              <p style="color: #666; margin-bottom: 20px;">You can track your order status in your account</p>
+            <div style="text-align: center; margin-top: 32px;">
+              <p style="color: #666; margin-bottom: 16px; font-size: 14px;">Track your order status in your account</p>
               <a href="${APP_URL}/profile" class="cta-button">View My Orders</a>
             </div>
 
-            <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee;">
-              <p style="color: #666; font-size: 14px; line-height: 1.8;">
-                <strong>What's Next?</strong><br>
-                • We'll send you a shipping confirmation email once your order is dispatched<br>
-                • You can track your order status in your profile<br>
-                • Questions? Reply to this email or contact our support team
+            <div style="margin-top: 40px; padding: 22px 24px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid #c9a227;">
+              <p style="margin: 0 0 10px 0; font-weight: 700; color: #1a1a2e; font-size: 14px;">What happens next?</p>
+              <p style="margin: 0; color: #555; font-size: 13px; line-height: 1.9;">
+                We will send you a shipping confirmation once your order is dispatched.<br>
+                You can track your order status anytime in your profile.<br>
+                Questions? Reply to this email or contact our support team.
               </p>
             </div>
           </div>
 
           <div class="footer">
-            <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #fff;">Impact Store</p>
+            <p style="margin: 0 0 8px 0; font-size: 15px; font-weight: 600; color: #fff;">Impact Store</p>
             <p style="margin: 0 0 5px 0;">ICT Hardware and Business Technology</p>
+            <p style="margin: 0 0 5px 0; opacity: 0.8;">Impact Store is a trading name of Impact Holdings Group</p>
             <p style="margin: 15px 0 0 0;">
               <a href="${APP_URL}">Visit Website</a> |
               <a href="${APP_URL}/contact">Contact Support</a>
