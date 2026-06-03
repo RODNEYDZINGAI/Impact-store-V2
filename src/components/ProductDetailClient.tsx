@@ -325,6 +325,12 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                       </a>
                     </li>
                     <li>
+                      Landline:{" "}
+                      <a href="tel:+27100013608" className="text-[#1f4f8f] hover:underline">
+                        +27 10 001 3608
+                      </a>
+                    </li>
+                    <li>
                       <a
                         href="https://wa.me/27785229194"
                         target="_blank"
