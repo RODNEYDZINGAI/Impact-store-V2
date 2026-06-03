@@ -72,6 +72,20 @@ const CONDITION_COLORS: Record<string, string> = {
   Used: "bg-slate-200 text-slate-700",
 };
 
+const SUPPLIER_ONLY_SPEC_KEYS = new Set([
+  "supplier category",
+  "supplier sub category",
+  "supplier code",
+]);
+
+function normalizeSpecKey(key: string) {
+  return key.trim().toLowerCase().replace(/[\s_-]+/g, " ");
+}
+
+function isStorefrontSpecVisible(key: string) {
+  return !SUPPLIER_ONLY_SPEC_KEYS.has(normalizeSpecKey(key));
+}
+
 function isHttpUrl(value: string) {
   return /^https?:\/\//i.test(value.trim());
 }
@@ -122,7 +136,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
     }).catch(() => {});
   };
 
-  const specs = product.specs ? Object.entries(product.specs) : [];
+  const specs = product.specs ? Object.entries(product.specs).filter(([key]) => isStorefrontSpecVisible(key)) : [];
 
   const stickyPrice =
     product.variants && product.variants.filter((v) => v.published !== false).length > 0
