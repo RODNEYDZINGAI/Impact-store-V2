@@ -72,6 +72,31 @@ const CONDITION_COLORS: Record<string, string> = {
   Used: "bg-slate-200 text-slate-700",
 };
 
+function isHttpUrl(value: string) {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+function isDownloadableSpec(key: string) {
+  return /download/i.test(key);
+}
+
+function SpecValue({ specKey, value }: { specKey: string; value: string }) {
+  if (isDownloadableSpec(specKey) && isHttpUrl(value)) {
+    return (
+      <a
+        href={value}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold text-[#1f4f8f] hover:underline"
+      >
+        link
+      </a>
+    );
+  }
+
+  return <>{value}</>;
+}
+
 export default function ProductDetailClient({ product, relatedProducts }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("description");
   const [copied, setCopied] = useState(false);
@@ -218,7 +243,9 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                       {specs.map(([key, value], i) => (
                         <tr key={key} className={i % 2 === 0 ? "bg-slate-50" : "bg-white"}>
                           <td className="w-1/3 px-4 py-2.5 font-medium text-slate-700">{key}</td>
-                          <td className="px-4 py-2.5 text-slate-600">{value}</td>
+                          <td className="px-4 py-2.5 text-slate-600">
+                            <SpecValue specKey={key} value={value} />
+                          </td>
                         </tr>
                       ))}
                     </tbody>
