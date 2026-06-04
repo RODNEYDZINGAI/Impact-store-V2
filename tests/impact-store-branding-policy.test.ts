@@ -67,3 +67,12 @@ test("customer-facing WhatsApp and phone links use the new Impact Store number",
     assert.match(content, new RegExp(WHATSAPP_DISPLAY_NUMBER.replace(/[+]/g, "\\+")), `${file} should display ${WHATSAPP_DISPLAY_NUMBER}`);
   }
 });
+
+test("contact page displays both the office line and mobile WhatsApp number", () => {
+  const content = readFileSync("src/app/contact/page.tsx", "utf8");
+
+  assert.match(content, new RegExp(WHATSAPP_NUMBER));
+  assert.match(content, new RegExp(WHATSAPP_DISPLAY_NUMBER.replace(/[+]/g, "\\+")));
+  assert.match(content, new RegExp(OLD_WHATSAPP_NUMBER));
+  assert.match(content, new RegExp(OLD_DISPLAY_NUMBER.replace(/[+]/g, "\\+")));
+});
